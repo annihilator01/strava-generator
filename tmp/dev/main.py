@@ -20,17 +20,16 @@ def main():
         departure_time=now
     )[0]
 
-    overview_points_result = polyline.decode(directions_result['overview_polyline']['points'])
-
-    concat_points_result = []
+    all_points_coords = []
     for step in directions_result['legs'][0]['steps']:
-        concat_points_result += polyline.decode(step['polyline']['points'])
+        all_points_coords += polyline.decode(step['polyline']['points'])
 
-    generator = GpxGen('Yet another generator')
-    for coords in concat_points_result:
-        point = {'coords': {'lat': coords[0], 'lon': coords[1]}}
-        generator.add_point(point)
+    generator = GpxGen('Yet another generator 2')
+    points = []
+    for coords in all_points_coords:
+        points.append(coords)
 
+    generator.add_points(points)
     result = generator.build()
 
     with open('tmpfile.gpx', 'wb') as file:
