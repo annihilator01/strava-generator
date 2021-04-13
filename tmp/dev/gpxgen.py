@@ -1,13 +1,12 @@
 import numpy as np
+import haversine as hs
 
 from lxml import etree
 from datetime import datetime
 
 
 class GpxGen:
-    def __init__(self, name, *, activity_type=9, start_time=None):
-        self.name = name
-        self.activity_type = activity_type
+    def __init__(self, *, start_time=None):
         self.start_time = start_time
 
         self.root = self._build_root()
@@ -16,13 +15,13 @@ class GpxGen:
         self.activity_points = self.root.find('trk').find('trkseg')
 
         # constants
-        self.eps = 1e-8
+        self.eps = 1e-10
         self.route_deviation_scale = 1e-5
-        self.min_sin_deviation = 1e-6
-        self.max_sin_deviation = 1e-5
-        self.sin_max_chunk_size = 0.25
+        self.min_sin_deviation = 0.05
+        self.max_sin_deviation = 0.5
+        self.default_max_chunk_size = 0.025
         self.min_pace = 3
-        self.max_pace = 10
+        self.max_pace = 8
 
     def add_point(self, point):
         intermediate_points = []
@@ -38,10 +37,11 @@ class GpxGen:
         self.points = self._make_noisy(self.points, self.route_deviation_scale / 2, self.route_deviation_scale)
 
     def set_start_time(self):
-        start_time = self.start_time if self.start_time else datetime.now()
-        start_time = datetime.strftime(start_time, '%Y-%m-%dT%H:%M:%SZ')
+        if not self.start_time:
+            self.start_time = datetime.now()
+
         start_time_tag = self.root.find('metadata').find('time')
-        start_time_tag.text = start_time
+        start_time_tag.text = self.start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def build(self):
         self.set_start_time()
@@ -81,10 +81,8 @@ class GpxGen:
         metadata.extend([start_time])
 
         trk = self._get_element('trk')
-        name = self._get_element('name', text=self.name)
-        activity_type = self._get_element('type', text=self.activity_type)
         trkseg = self._get_element('trkseg')
-        trk.extend([name, activity_type, trkseg])
+        trk.extend([trkseg])
 
         root.extend([metadata, trk])
 
@@ -97,9 +95,6 @@ class GpxGen:
         }
 
         trkpt = self._get_element('trkpt', attrib=point_attrs)
-        point_time = self._get_element('time', text='2021-03-18T13:39:50Z')
-        trkpt.extend([point_time])
-
         self.activity_points.append(trkpt)
 
     def _create_activity_points(self, points):
@@ -140,6 +135,11 @@ class GpxGen:
         sin_points = self._get_sin_points()
         noisy_sin_points = self._make_noisy_by_chunks(sin_points)
         result_sin_points = self._get_fit_to_range_points(noisy_sin_points)
+        self._form_time_info(result_sin_points)
+
+        for i in range(len(self.activity_points)):
+            point_time = self._get_element('time', text=f"{self.time_info[i].strftime('%Y-%m-%dT%H:%M:%SZ')}")
+            self.activity_points[i].extend([point_time])
 
     def _get_sin_points(self):
         sin_points = []
@@ -182,10 +182,20 @@ class GpxGen:
         points_left = points_count = len(self.points)
 
         while points_left != 0:
-            chunk_size = np.random.uniform(self.eps, 0.25)
-            chunk_points_count = int(points_count * chunk_size)
+            chunk_size = np.random.uniform(self.eps, self.default_max_chunk_size)
+            chunk_points_count = max(int(points_count * chunk_size), 1)
             chunk_points_count = chunk_points_count if chunk_points_count < points_left else points_left
             points_count_by_chunks.append(chunk_points_count)
             points_left -= chunk_points_count
 
         return points_count_by_chunks
+
+    def _form_time_info(self, pace_values):  # pace values in min/km format
+        self.time_info = [self.start_time]
+        for i in range(len(pace_values) - 1):
+            loc1 = self.points[i]
+            loc2 = self.points[i + 1]
+            distance = hs.haversine(loc1, loc2)
+            time_for_distance = distance * (pace_values[i] * 60)  # time_for_distance is in seconds format
+            time_for_next_point = datetime.fromtimestamp(self.time_info[-1].timestamp() + time_for_distance)
+            self.time_info.append(time_for_next_point)
