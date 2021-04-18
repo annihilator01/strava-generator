@@ -15,14 +15,20 @@ def main():
 
     directions_result = gmaps.directions(
         origin='59.98560246938819, 30.30091891500659',
+        waypoints=['59.9709480037374, 30.274053896371452', '59.96179774500544, 30.279632890814575'],
         destination='59.95623821581812, 30.31035283478617',
         mode='walking',
         # departure_time=now
     )[0]
 
+    import json
+    with open('tmp.json', 'w') as f:
+        f.write(json.dumps(directions_result))
+
     all_points_coords = []
-    for step in directions_result['legs'][0]['steps']:
-        all_points_coords += polyline.decode(step['polyline']['points'])
+    for leg in directions_result['legs']:
+        for step in leg['steps']:
+            all_points_coords += polyline.decode(step['polyline']['points'])
 
     generator = GpxGen(start_time=datetime(2021, 4, 13, 14, 22, 39))
     points = []
