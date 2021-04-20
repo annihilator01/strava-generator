@@ -47,7 +47,10 @@ class GpxGen:
         if not self.end_time:
             self.end_time = datetime.now(self.timezone)
         else:
-            self.end_time = self.timezone.localize(self.end_time)
+            if self.end_time.tzinfo:
+                self.end_time = self.end_time.astimezone(self.timezone)
+            else:
+                self.end_time = self.timezone.localize(self.end_time)
 
     def build(self):
         self._set_end_time()

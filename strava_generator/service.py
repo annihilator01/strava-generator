@@ -5,6 +5,7 @@ import polyline
 from datetime import datetime
 from django.utils.datastructures import MultiValueDictKeyError
 from mylibs.gpxgen import GpxGen
+from .models import Visitor, Action
 
 
 class IncorrectCoordinatesFormatException(Exception):
@@ -15,6 +16,15 @@ class IncorrectCoordinatesFormatException(Exception):
 class IncorrectActivityTypeException(Exception):
     def __init__(self, msg):
         super(IncorrectActivityTypeException, self).__init__(msg)
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 
 def get_required(params, key):
@@ -50,6 +60,12 @@ def get_coordinates_list(string_coords_list):
             raise IncorrectCoordinatesFormatException(f'Incorrect coordinates format: {string_coords_list}')
 
     return coords_list
+
+
+def get_string_from_datetime(datetime_obj):
+    if not datetime_obj:
+        return None
+    return datetime_obj.strftime('%Y-%m-%dT%H:%M:%S')
 
 
 def get_datetime_from_string(string_datetime):
@@ -93,3 +109,21 @@ def validate_activity_type(activity_type):
     if activity_type not in ['run', 'bike']:
         raise IncorrectActivityTypeException(f'Incorrect activity type: {activity_type}')
     return activity_type
+
+
+def register_visitor(request):
+    visitor_ip = get_client_ip(request)
+    visitor = Visitor.objects.get_or_create(ip=visitor_ip)[0]
+    return visitor
+
+
+def register_action(request):
+    visitor = register_visitor(request)
+    action_url = request.get_full_path()
+
+    action = Action.objects.create(
+        visitor=visitor,
+        action_url=action_url
+    )
+
+    return action
