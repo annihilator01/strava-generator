@@ -7,8 +7,8 @@ from pytz import timezone
 
 
 class GpxGen:
-    def __init__(self, *, start_time=None):
-        self.start_time = start_time
+    def __init__(self, *, activity_type='run', end_time=None):
+        self.end_time = end_time
 
         self.root = self._build_root()
         self.points = []
@@ -21,8 +21,14 @@ class GpxGen:
         self.min_sin_deviation = 0.05
         self.max_sin_deviation = 0.5
         self.default_max_chunk_size = 0.025
-        self.min_pace = 3
-        self.max_pace = 8
+        self.timezone = timezone('Europe/Moscow')
+
+        if activity_type == 'run':
+            self.min_pace = 3
+            self.max_pace = 8
+        elif activity_type == 'bike':
+            self.min_pace = 2
+            self.max_pace = 6
 
     def add_point(self, point):
         intermediate_points = []
@@ -37,24 +43,24 @@ class GpxGen:
             self.add_point(point)
         self.points = self._make_noisy(self.points, self.route_deviation_scale / 2, self.route_deviation_scale)
 
-    def set_start_time(self):
-        if not self.start_time:
-            self.start_time = datetime.now()
-        self.start_time = self.start_time.astimezone(tz=timezone('Europe/Moscow'))
-
-        start_time_tag = self.root.find('metadata').find('time')
-        start_time_tag.text = self.start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+    def _set_end_time(self):
+        if not self.end_time:
+            self.end_time = datetime.now(self.timezone)
+        else:
+            self.end_time = self.timezone.localize(self.end_time)
 
     def build(self):
-        self.set_start_time()
+        self._set_end_time()
         self._create_activity_points(self.points)
         self._create_points_time_info()
+
+        start_time_tag = self.root.find('metadata').find('time')
+        start_time_tag.text = self.activity_points[0].find('time').text
 
         return etree.tostring(
             self.root,
             xml_declaration=True,
             encoding='UTF-8',
-            # encoding='unicode',
             pretty_print=True,
         )
 
@@ -139,9 +145,18 @@ class GpxGen:
         result_sin_points = self._get_fit_to_range_points(noisy_sin_points)
         self._form_time_info(result_sin_points)
 
-        for i in range(len(self.activity_points)):
-            point_time = self._get_element('time', text=f"{self.time_info[i].strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        time_for_curr_point = self.end_time
+        for i in reversed(range(len(self.activity_points))):
+            point_time = self._get_element(
+                'time',
+                text=f"{time_for_curr_point.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+            )
             self.activity_points[i].extend([point_time])
+
+            time_for_curr_point = datetime.fromtimestamp(
+                time_for_curr_point.timestamp() - self.time_info[i],
+                tz=self.timezone
+            )
 
     def _get_sin_points(self):
         sin_points = []
@@ -193,14 +208,10 @@ class GpxGen:
         return points_count_by_chunks
 
     def _form_time_info(self, pace_values):  # pace values in min/km format
-        self.time_info = [self.start_time]
+        self.time_info = [0]
         for i in range(len(pace_values) - 1):
             loc1 = self.points[i]
             loc2 = self.points[i + 1]
             distance = hs.haversine(loc1, loc2)
             time_for_distance = distance * (pace_values[i] * 60)  # time_for_distance is in seconds format
-            time_for_next_point = datetime.fromtimestamp(
-                self.time_info[-1].timestamp() + time_for_distance,
-                tz=timezone('Europe/Moscow')
-            )
-            self.time_info.append(time_for_next_point)
+            self.time_info.append(time_for_distance)
