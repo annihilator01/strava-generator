@@ -4,6 +4,7 @@ import polyline
 
 from datetime import datetime
 from django.utils.datastructures import MultiValueDictKeyError
+from strava.settings import GMAPS_API_TOKEN
 from mylibs.gpxgen import GpxGen
 from .models import Visitor, Action
 
@@ -79,7 +80,7 @@ def get_datetime_from_string(string_datetime):
 
 
 def get_cooked_gpx_generator(origin, destination, waypoints, activity_type, end_time):
-    gmaps = googlemaps.Client(key=os.environ['GMAPS_API_TOKEN'])
+    gmaps = googlemaps.Client(key=GMAPS_API_TOKEN)
 
     try:
         directions_result = gmaps.directions(
@@ -88,8 +89,8 @@ def get_cooked_gpx_generator(origin, destination, waypoints, activity_type, end_
             destination=destination,
             mode='walking'
         )[0]
-    except IndexError:
-        raise IndexError('Wrong coordinates')
+    except Exception:
+        raise Exception('Impossible route')
 
     all_points_coords = []
     for leg in directions_result['legs']:

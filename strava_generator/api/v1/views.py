@@ -1,8 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from strava.settings import GMAPS_API_TOKEN
-from gpxgen import GpxGen
 from datetime import datetime
 from pytz import timezone
 from ... import service
@@ -55,7 +53,7 @@ def get_generated_strava_gpx(request):
             activity_type=activity_type,
             end_time=end_time
         )
-    except IndexError as e:
+    except Exception as e:
         return Response(*_get_400_response(str(e)))
 
     generated_gpx = cooked_gpx_generator.build()
