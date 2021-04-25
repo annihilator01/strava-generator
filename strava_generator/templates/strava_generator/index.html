@@ -12,14 +12,14 @@
         <a class="navbar-brand font-weight-bold " href="/">STRAVA GENERATOR</a>
     </nav>
 
-
     <div id="map"></div>
+{% endblock %}
 
-    {% block js %}
-        <script
-                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC_lKM2stBnzhmo556xHHDFt-7RAO7rQ&callback=initMap"
-                async
-        ></script>
-        <script src="{% static 'strava_generator/index.js' %}"></script>
-    {% endblock %}
+
+{% block js %}
+    <script
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC_lKM2stBnzhmo556xHHDFt-7RAO7rQ&callback=initMap"
+            async
+    ></script>
+    <script src="{% static 'strava_generator/index.js' %}"></script>
 {% endblock %}
