@@ -8,18 +8,35 @@
 
 
 {% block content %}
-    <nav class="navbar">
-        <a class="navbar-brand font-weight-bold " href="/">STRAVA GENERATOR</a>
-    </nav>
+    <header>
+        <nav class="navbar">
+            <a class="navbar-brand font-weight-bold" href="/">STRAVA GENERATOR</a>
+        </nav>
+    </header>
 
-    <div id="map"></div>
+    <main>
+        <section>
+            <form class="gen-form container px-4">
+                <div class="map-group row justify-content-center rounded-lg">
+                    <div class="col-12 p-0">
+                        <div id="map" class="rounded"></div>
+                    </div>
+                    <div class="col-12 p-0 mt-3">
+                        <input id="location-input" type="text" class="form-control"
+                               placeholder="Search for place...">
+                    </div>
+                    <ul id="location-list" class="list-group col-12 p-0 mt-3"></ul>
+                </div>
+            </form>
+        </section>
+    </main>
 {% endblock %}
 
 
 {% block js %}
     <script
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC_lKM2stBnzhmo556xHHDFt-7RAO7rQ&callback=initMap"
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC_lKM2stBnzhmo556xHHDFt-7RAO7rQ&callback=initMap&libraries=places"
             async
     ></script>
-    <script src="{% static 'strava_generator/index.js' %}"></script>
+    <script src="{% static 'strava_generator/js/index.js' %}"></script>
 {% endblock %}

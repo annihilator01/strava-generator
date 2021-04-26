@@ -1,0 +1,48 @@
+#map {
+    width: auto;
+    height: 400px;
+}
+
+#location-list {
+    /*max-height: 100px;*/
+    overflow-y: auto;
+}
+
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.map-group {
+    width: auto;
+    padding: 10px;
+    background-color: aquamarine;
+}
+
+.list-group-item {
+    padding-left: .75rem;
+    padding-right: .75rem;
+}
+
+.drag-item {
+    color: dimgray;
+}
+
+.drag-item:hover {
+    color: dodgerblue;
+    cursor: move;
+}
+
+.remove-item {
+    color: #cb0808;
+}
+
+.remove-item:hover {
+    color: red;
+    cursor: pointer;
+}
