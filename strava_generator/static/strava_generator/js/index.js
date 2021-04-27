@@ -1,4 +1,5 @@
 $(document).ready(() => {
+    initDocumentBehaviour();
     initLocationInput();
     initLocationList();
     initForm();
@@ -8,10 +9,15 @@ $(document).ready(() => {
 })
 
 
-let map, autocomplete;
+let map,
+    autocomplete,
+    geocoder,
+    markerMenu;
 async function initMap() {
-    let center_coords, zoom;
+    geocoder = new google.maps.Geocoder();
+    markerMenu = $('#marker-menu');
 
+    let center_coords, zoom;
     getCurrentLocation()
         .then(position => {
             center_coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
@@ -32,11 +38,16 @@ async function initMap() {
             });
 
             map.addListener("click", (event) => {
-                new google.maps.Marker({
-                    position: event.latLng,
-                    map: map,
-                    title: "Hello World!",
-                });
+                geocoder.geocode(
+                    {location: event.latLng},
+                    (results, status) => {
+                        if (status === google.maps.GeocoderStatus.OK) {
+                            addMarker(event.latLng, results[0].formatted_address);
+                        } else {
+                            addMarker(event.latLng, `${event.latLng.lat().toFixed(3)}, ${event.latLng.lng().toFixed(3)}`);
+                        }
+                    }
+                )
             });
         });
 
@@ -49,20 +60,50 @@ async function initMap() {
             place.geometry.location.lng()
         )
 
-        new google.maps.Marker({
-            position: coords,
-            map: map,
-            title: "Hello World!",
-        });
-
-        map.setCenter(coords);
+        addMarker(coords, place.formatted_address);
     });
+}
+
+
+function addMarker(coords, name) {
+    const marker = new google.maps.Marker({
+        position: coords,
+        map: map,
+        title: name,
+    });
+
+    google.maps.event.addListener(marker, 'rightclick', (e) => {
+        for (const prop in e) {
+            if (e[prop] instanceof MouseEvent) {
+                const mouseEvt = e[prop];
+                const left = mouseEvt.clientX;
+                const top = mouseEvt.clientY;
+
+                markerMenu.css('left', `${left}px`);
+                markerMenu.css('top', `${top}px`);
+                markerMenu.css('display', 'block');
+
+                mouseEvt.preventDefault();
+            }
+        }
+    });
+
+    map.setCenter(coords);
 }
 
 function getCurrentLocation() {
     return new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
     });
+}
+
+
+function initDocumentBehaviour() {
+    $(document).click(() => {
+        if (markerMenu.css('display') !== 'none') {
+            markerMenu.css('display', 'none');
+        }
+    })
 }
 
 
@@ -86,12 +127,18 @@ function initLocationList() {
         handle: '.drag-item',
         scrollSpeed: 10,
         tolerance: 'pointer',
+        update: () => console.log('changed')  // TODO action
     });
 }
 
 function addLocation(name) {
     const $listItem = getListItem(name);
-    $locationList.append($listItem);
+
+    if ($locationList.find('.list-group-item').length < 2) {
+        $locationList.append($listItem);
+    } else {
+        $locationList.find(' > .list-group-item:last-child').before($listItem);
+    }
 }
 
 function getListItem(name) {
@@ -115,6 +162,7 @@ function getListItem(name) {
     );
 
     $listItem.children('.remove-item').click(() => $listItem.remove());
+    $listItem.data('kek', new Date());
 
     return $listItem;
 }

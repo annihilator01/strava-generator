@@ -20,6 +20,10 @@
                 <div class="map-group row justify-content-center rounded-lg">
                     <div class="col-12 p-0">
                         <div id="map" class="rounded"></div>
+                        <div id="marker-menu" class="dropdown-menu">
+                            <div class="dropdown-item"><i class="far fa-plus-square fa-sm"></i>&nbsp; Add as a midpoint</div>
+                            <div class="dropdown-item"><i class="fas fa-trash fa-sm"></i>&nbsp; Remove marker</div>
+                        </div>
                     </div>
                     <div class="col-12 p-0 mt-3">
                         <input id="location-input" type="text" class="form-control"
@@ -35,7 +39,7 @@
 
 {% block js %}
     <script
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC_lKM2stBnzhmo556xHHDFt-7RAO7rQ&callback=initMap&libraries=places"
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC_lKM2stBnzhmo556xHHDFt-7RAO7rQ&callback=initMap&language=en&libraries=places"
             async
     ></script>
     <script src="{% static 'strava_generator/js/index.js' %}"></script>

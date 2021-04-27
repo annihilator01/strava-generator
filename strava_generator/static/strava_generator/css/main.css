@@ -6,6 +6,11 @@
 #location-list {
     /*max-height: 100px;*/
     overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#marker-menu {
+    /*display: block;*/
 }
 
 .no-select {
@@ -16,6 +21,10 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
+}
+
+.dropdown-item {
+    padding: .20rem .75rem;
 }
 
 .map-group {
