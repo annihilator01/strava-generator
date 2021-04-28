@@ -10,7 +10,7 @@
 }
 
 #marker-menu {
-    /*display: block;*/
+    position: fixed;
 }
 
 .no-select {

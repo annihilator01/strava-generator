@@ -3,16 +3,15 @@ $(document).ready(() => {
     initLocationInput();
     initLocationList();
     initForm();
-    addLocation('First');
-    addLocation('Second');
-    addLocation('Third');
 })
 
 
 let map,
     autocomplete,
     geocoder,
-    markerMenu;
+    markerMenu
+    routeMarkers = {};
+
 async function initMap() {
     geocoder = new google.maps.Geocoder();
     markerMenu = $('#marker-menu');
@@ -54,6 +53,8 @@ async function initMap() {
     const locationInput = $locationInput[0];
     autocomplete = new google.maps.places.Autocomplete(locationInput);
     google.maps.event.addListener(autocomplete, 'place_changed', () => {
+        $locationInput.val('');
+
         const place = autocomplete.getPlace();
         const coords = new google.maps.LatLng(
             place.geometry.location.lat(),
@@ -72,23 +73,49 @@ function addMarker(coords, name) {
         title: name,
     });
 
+    let $routePoint;
+
     google.maps.event.addListener(marker, 'rightclick', (e) => {
-        for (const prop in e) {
-            if (e[prop] instanceof MouseEvent) {
-                const mouseEvt = e[prop];
-                const left = mouseEvt.clientX;
-                const top = mouseEvt.clientY;
+        for (const property in e) {
+            if (e[property] instanceof MouseEvent) {
+                const mouseEvent = e[property];
+                const left = mouseEvent.clientX;
+                const top = mouseEvent.clientY;
 
                 markerMenu.css('left', `${left}px`);
                 markerMenu.css('top', `${top}px`);
                 markerMenu.css('display', 'block');
 
-                mouseEvt.preventDefault();
+                markerMenu.find('.add-marker')
+                    .off('click')
+                    .click(() => {
+                        $routePoint = addRoutePoint(marker);
+                    });
+
+                markerMenu.find('.remove-marker')
+                    .off('click')
+                    .click(() => {
+                        marker.setMap(null);
+                        removeRoutePoint($routePoint);
+                    });
+
+                mouseEvent.preventDefault();
             }
         }
     });
 
     map.setCenter(coords);
+}
+
+function removeRoutePoint($routePoint) {
+    if ($routePoint) {
+        const marker = $routePoint.data('marker');
+        const coordsString = getCoordsString(marker);
+
+        marker.setMap(null);
+        delete routeMarkers[coordsString];
+        $routePoint.remove();
+    }
 }
 
 function getCurrentLocation() {
@@ -100,9 +127,10 @@ function getCurrentLocation() {
 
 function initDocumentBehaviour() {
     $(document).click(() => {
-        if (markerMenu.css('display') !== 'none') {
-            markerMenu.css('display', 'none');
-        }
+        markerMenu.css('display', 'none');
+    });
+    $(window).contextmenu(() => {
+        markerMenu.css('display', 'none');
     })
 }
 
@@ -131,18 +159,30 @@ function initLocationList() {
     });
 }
 
-function addLocation(name) {
-    const $listItem = getListItem(name);
+function addRoutePoint(marker) {
+    const coordsString = getCoordsString(marker);
+    if (!routeMarkers[coordsString]) {
+        routeMarkers[coordsString] = marker;
+    } else {
+        return routeMarkers[coordsString];
+    }
+
+
+    const name = marker.title;
+    const $routePoint = getRoutePoint(name);
+    $routePoint.data('marker', marker);
 
     if ($locationList.find('.list-group-item').length < 2) {
-        $locationList.append($listItem);
+        $locationList.append($routePoint);
     } else {
-        $locationList.find(' > .list-group-item:last-child').before($listItem);
+        $locationList.find(' > .list-group-item:last-child').before($routePoint);
     }
+
+    return $routePoint;
 }
 
-function getListItem(name) {
-    const $listItem = $('<li/>', {
+function getRoutePoint(name) {
+    const $routePoint = $('<li/>', {
         class: 'list-group-item d-flex align-items-center'
     }).append(
         $('<i/>', {
@@ -161,8 +201,10 @@ function getListItem(name) {
         })
     );
 
-    $listItem.children('.remove-item').click(() => $listItem.remove());
-    $listItem.data('kek', new Date());
+    $routePoint.find('.remove-item').click(() => removeRoutePoint($routePoint));
+    return $routePoint;
+}
 
-    return $listItem;
+function getCoordsString(marker) {
+    return `${marker.position.lat()},${marker.position.lng()}`
 }
