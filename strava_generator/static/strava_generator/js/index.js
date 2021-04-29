@@ -1,71 +1,3 @@
-$(document).ready(() => {
-    initDocumentBehaviour();
-    initLocationInput();
-    initLocationList();
-    initForm();
-})
-
-
-let map,
-    autocomplete,
-    geocoder,
-    markerMenu
-    routeMarkers = {};
-
-async function initMap() {
-    geocoder = new google.maps.Geocoder();
-    markerMenu = $('#marker-menu');
-
-    let center_coords, zoom;
-    getCurrentLocation()
-        .then(position => {
-            center_coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-            zoom = 17;
-        })
-        .catch(() => {
-            center_coords = new google.maps.LatLng(55.755799012637766, 37.617742567387175);
-            zoom = 10;
-        })
-        .finally(() => {
-            map = new google.maps.Map($('#map')[0], {
-                center: center_coords,
-                zoom: zoom,
-                disableDefaultUI: true,
-                zoomControl: true,
-                scaleControl: true,
-                fullscreenControl: true
-            });
-
-            map.addListener("click", (event) => {
-                geocoder.geocode(
-                    {location: event.latLng},
-                    (results, status) => {
-                        if (status === google.maps.GeocoderStatus.OK) {
-                            addMarker(event.latLng, results[0].formatted_address);
-                        } else {
-                            addMarker(event.latLng, `${event.latLng.lat().toFixed(3)}, ${event.latLng.lng().toFixed(3)}`);
-                        }
-                    }
-                )
-            });
-        });
-
-    const locationInput = $locationInput[0];
-    autocomplete = new google.maps.places.Autocomplete(locationInput);
-    google.maps.event.addListener(autocomplete, 'place_changed', () => {
-        $locationInput.val('');
-
-        const place = autocomplete.getPlace();
-        const coords = new google.maps.LatLng(
-            place.geometry.location.lat(),
-            place.geometry.location.lng()
-        )
-
-        addMarker(coords, place.formatted_address);
-    });
-}
-
-
 function addMarker(coords, name) {
     const marker = new google.maps.Marker({
         position: coords,
@@ -82,17 +14,17 @@ function addMarker(coords, name) {
                 const left = mouseEvent.clientX;
                 const top = mouseEvent.clientY;
 
-                markerMenu.css('left', `${left}px`);
-                markerMenu.css('top', `${top}px`);
-                markerMenu.css('display', 'block');
+                $markerMenu.css('left', `${left}px`);
+                $markerMenu.css('top', `${top}px`);
+                $markerMenu.css('display', 'block');
 
-                markerMenu.find('.add-marker')
+                $markerMenu.find('.add-marker')
                     .off('click')
                     .click(() => {
                         $routePoint = addRoutePoint(marker);
                     });
 
-                markerMenu.find('.remove-marker')
+                $markerMenu.find('.remove-marker')
                     .off('click')
                     .click(() => {
                         marker.setMap(null);
@@ -108,58 +40,93 @@ function addMarker(coords, name) {
 }
 
 function removeRoutePoint($routePoint) {
-    if ($routePoint) {
-        const marker = $routePoint.data('marker');
-        const coordsString = getCoordsString(marker);
-
-        marker.setMap(null);
-        delete routeMarkers[coordsString];
-        $routePoint.remove();
+    if (!$routePoint) {
+        return;
     }
+
+    const marker = $routePoint.data('marker');
+    const coordsString = getCoordsString(marker);
+
+    marker.setMap(null);
+    delete routeMarkers[coordsString];
+    $routePoint.remove();
+
+    drawRoute();
 }
 
-function getCurrentLocation() {
-    return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
+
+function drawRoute() {
+    setMarkersLabels();
+    const $locationListChildren = $locationList.children('.list-group-item');
+
+    if ($locationListChildren.length < 2) {
+        directionsRenderer.setDirections({routes: []});
+        return;
+    }
+
+    let coordsArr = [];
+    $locationListChildren.each(function() {
+        coordsArr.push(getCoordsString($(this).data('marker')));
     });
+
+    const origin = coordsArr[0];
+    const destination = coordsArr[coordsArr.length - 1];
+
+    let waypoints = [];
+    if ($locationListChildren.length > 2) {
+        const waypointsArr = coordsArr.splice(1, coordsArr.length - 2);
+        waypointsArr.forEach((coords) => {
+            waypoints.push({
+               location: coords,
+               stopover: true
+            });
+        });
+    }
+
+    directionService.route(
+        {
+            origin: origin,
+            destination: destination,
+            waypoints: waypoints,
+            travelMode: google.maps.TravelMode.WALKING
+        },
+        (response, status) => {
+            if (status === 'OK' && response) {
+                directionsRenderer.setDirections(response);
+                setNewNamesAndPositionsToMarker(response.routes[0].legs);
+            }
+        }
+    );
 }
 
+function setNewNamesAndPositionsToMarker(legs) {
+    const $locationListChildren = $locationList.children('.list-group-item');
+    $locationListChildren.each(function(i) {
+        const marker = $(this).data('marker');
 
-function initDocumentBehaviour() {
-    $(document).click(() => {
-        markerMenu.css('display', 'none');
-    });
-    $(window).contextmenu(() => {
-        markerMenu.css('display', 'none');
-    })
-}
-
-
-const $locationInput = $('#location-input');
-function initLocationInput() {
-}
-
-
-const genForm = $('.gen-form');
-function initForm() {
-    genForm.submit(e => {
-        e.preventDefault();
-    });
-}
-
-
-const $locationList = $('#location-list');
-function initLocationList() {
-    $locationList.sortable({
-        axis: 'y',
-        handle: '.drag-item',
-        scrollSpeed: 10,
-        tolerance: 'pointer',
-        update: () => console.log('changed')  // TODO action
+        if (i < legs.length) {
+            $(this).find('.location-name').html = `&nbsp; ${legs[i].start_address}`;
+            marker.setTitle(legs[i].start_address);
+            marker.setPosition(new google.maps.LatLng(
+                legs[i].start_location.lat(),
+                legs[i].start_location.lng()
+            ));
+        } else {
+            $(this).find('.location-name').html = `&nbsp; ${legs[i - 1].end_address}`;
+            marker.setTitle(legs[i - 1].end_address);
+            marker.setPosition(new google.maps.LatLng(
+                legs[i - 1].end_location.lat(),
+                legs[i - 1].end_location.lng()
+            ));
+        }
     });
 }
 
 function addRoutePoint(marker) {
+    if ($locationList.length === MAX_ROUTE_POINTS_NUM) {
+        return null;
+    }
+
     const coordsString = getCoordsString(marker);
     if (!routeMarkers[coordsString]) {
         routeMarkers[coordsString] = marker;
@@ -171,6 +138,7 @@ function addRoutePoint(marker) {
     const name = marker.title;
     const $routePoint = getRoutePoint(name);
     $routePoint.data('marker', marker);
+    $routePoint.click(() => map.setCenter(getCoordsObject(marker)));
 
     if ($locationList.find('.list-group-item').length < 2) {
         $locationList.append($routePoint);
@@ -178,6 +146,7 @@ function addRoutePoint(marker) {
         $locationList.find(' > .list-group-item:last-child').before($routePoint);
     }
 
+    drawRoute();
     return $routePoint;
 }
 
@@ -190,8 +159,20 @@ function getRoutePoint(name) {
             'aria-hidden': 'true',
         })
     ).append(
+        $('<span/>', {
+            class: 'location-label fa-stack ml-2'
+        }).append(
+            $('<i/>', {
+                class: 'far fa-circle fa-stack-2x',
+            })
+        ).append(
+            $('<strong/>', {
+                class: 'fa-stack-1x'
+            })
+        )
+    ).append(
         $('<p/>', {
-            class: 'm-0 mr-3 no-select text-truncate',
+            class: 'location-name m-0 mr-3 no-select text-truncate',
             html: `&nbsp; ${name}`,
         })
     ).append(
@@ -205,6 +186,29 @@ function getRoutePoint(name) {
     return $routePoint;
 }
 
+function setMarkersLabels() {
+    const $locationListChildren = $locationList.children('.list-group-item');
+    $locationListChildren.each(function (i) {
+        const marker = $(this).data('marker');
+
+        const label = {
+            color: 'white',
+            fontWeight: 'white',
+            text: LABELS[i]
+        };
+
+        $(this).find('.location-label > strong').text(label.text);
+        marker.setLabel(label);
+    });
+}
+
 function getCoordsString(marker) {
     return `${marker.position.lat()},${marker.position.lng()}`
+}
+
+function getCoordsObject(marker) {
+    return new google.maps.LatLng(
+        marker.position.lat(),
+        marker.position.lng()
+    );
 }

@@ -1451,7 +1451,7 @@ google.maps.DirectionsLeg.prototype.via_waypoints;
 /**
  * Renders directions obtained from the <code><a
  * href="#DirectionsService">DirectionsService</a></code>.
- * @param {google.maps.DirectionsRendererOptions=} opts
+ * @param {{suppressMarkers: boolean}} opts
  * @extends {google.maps.MVCObject}
  * @constructor
  */

@@ -3,6 +3,10 @@
     height: 400px;
 }
 
+#status-bar {
+
+}
+
 #location-list {
     /*max-height: 100px;*/
     overflow-y: auto;
@@ -25,6 +29,7 @@
 
 .dropdown-item {
     padding: .20rem .75rem;
+    cursor: pointer;
 }
 
 .map-group {
@@ -45,6 +50,13 @@
 .drag-item:hover {
     color: dodgerblue;
     cursor: move;
+}
+
+.location-label {
+    vertical-align: middle;
+    horiz-align: center;
+    font-size: 13px;
+    color: dodgerblue;
 }
 
 .remove-item {
