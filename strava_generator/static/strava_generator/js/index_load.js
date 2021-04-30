@@ -1,5 +1,15 @@
 const MAX_ROUTE_POINTS_NUM = 26;
 const LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const activity_limit = {
+    run: {
+        val: 3000,
+        warn: 'Run activity must take at least 3km'
+    },
+    bike: {
+        val: 5000,
+        warn: 'Bike activity must take at least 5km'
+    }
+}
 
 
 $(document).ready(() => {
@@ -85,15 +95,20 @@ function getCurrentLocation() {
 }
 
 function getStatusBar() {
-    return $('<div/>', {
+    return $('<h3/>').append($('<div/>', {
         id: 'status-bar',
-        class: '',
-    }).append(
-        $('<div/>')
-    ).append(
-        $('<div/>', {
-        })
-    )
+        class: 'badge badge-success no-select',
+        text: '0 km'
+    }))
+    // return $('<div/>', {
+    //     id: 'status-bar',
+    //     class: '',
+    // }).append(
+    //     $('<div/>')
+    // ).append(
+    //     $('<div/>', {
+    //     })
+    // )
 }
 
 function initDocumentBehaviour() {

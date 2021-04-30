@@ -24,7 +24,7 @@ def get_generated_strava_gpx(request):
         origin = service.get_coordinates(service.get_required(params, 'origin'))
         destination = service.get_coordinates(service.get_required(params, 'destination'))
         waypoints = service.get_coordinates_list(params.get('waypoints'))
-        activity_type = service.validate_activity_type(params.get('activity_type', 'run'))
+        activity_type = service.validate_activity_type(params.get('activity_type', 'run').lower())
         end_time = service.get_datetime_from_string(params.get('end_time'))
     except (
             service.IncorrectCoordinatesFormatException,

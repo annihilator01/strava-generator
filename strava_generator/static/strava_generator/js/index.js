@@ -93,6 +93,7 @@ function drawRoute() {
         (response, status) => {
             if (status === 'OK' && response) {
                 directionsRenderer.setDirections(response);
+
                 setNewNamesAndPositionsToMarker(response.routes[0].legs);
             }
         }
