@@ -51,7 +51,7 @@ function removeRoutePoint($routePoint) {
     delete routeMarkers[coordsString];
     $routePoint.remove();
 
-    drawRoute();
+    drawRoute().then();
 }
 
 
@@ -61,7 +61,8 @@ function drawRoute() {
 
     if ($locationListChildren.length < 2) {
         directionsRenderer.setDirections({routes: []});
-        return;
+        turnWarning($statusBarInfo, '0 km', activity_limit.run.warn);  // TODO [activity]
+        return new Promise(resolve => resolve(routeStatus.ROUTE_UNNECESSARY));
     }
 
     let coordsArr = [];
@@ -83,24 +84,29 @@ function drawRoute() {
         });
     }
 
-    directionService.route(
-        {
-            origin: origin,
-            destination: destination,
-            waypoints: waypoints,
-            travelMode: google.maps.TravelMode.WALKING
-        },
-        (response, status) => {
-            if (status === 'OK' && response) {
-                directionsRenderer.setDirections(response);
-
-                setNewNamesAndPositionsToMarker(response.routes[0].legs);
+    return new Promise(resolve => {
+        directionService.route(
+            {
+                origin: origin,
+                destination: destination,
+                waypoints: waypoints,
+                travelMode: google.maps.TravelMode.WALKING
+            },
+            (response, status) => {
+                if (status === 'OK' && response) {
+                    directionsRenderer.setDirections(response);
+                    processLegs(response.routes[0].legs);
+                    resolve(routeStatus.ROUTE_BUILD);
+                } else {
+                    resolve(routeStatus.ROUTE_IMPOSSIBLE);
+                }
             }
-        }
-    );
+        );
+    });
 }
 
-function setNewNamesAndPositionsToMarker(legs) {
+function processLegs(legs) {
+    let totalDistance = 0;
     const $locationListChildren = $locationList.children('.list-group-item');
     $locationListChildren.each(function(i) {
         const marker = $(this).data('marker');
@@ -112,6 +118,7 @@ function setNewNamesAndPositionsToMarker(legs) {
                 legs[i].start_location.lat(),
                 legs[i].start_location.lng()
             ));
+            totalDistance += legs[i].distance.value;
         } else {
             $(this).find('.location-name').html = `&nbsp; ${legs[i - 1].end_address}`;
             marker.setTitle(legs[i - 1].end_address);
@@ -121,6 +128,14 @@ function setNewNamesAndPositionsToMarker(legs) {
             ));
         }
     });
+
+
+    const totalDistanceString = `${Number(totalDistance / 1000).toFixed(2)} km`;
+    if (totalDistance < activity_limit.run.val) {  // TODO [activity]
+        turnWarning($statusBarInfo, totalDistanceString, activity_limit.run.warn);  // TODO [activity]
+    } else {
+        turnSuccess($statusBarInfo, totalDistanceString, '');  // TODO [activity]
+    }
 }
 
 function addRoutePoint(marker) {
@@ -147,7 +162,13 @@ function addRoutePoint(marker) {
         $locationList.find(' > .list-group-item:last-child').before($routePoint);
     }
 
-    drawRoute();
+    drawRoute()
+        .then(responseRouteStatus => {
+            if (responseRouteStatus === routeStatus.ROUTE_IMPOSSIBLE) {
+                $markerMenu.find('.remove-marker').trigger('click');
+            }
+        });
+
     return $routePoint;
 }
 
@@ -212,4 +233,41 @@ function getCoordsObject(marker) {
         marker.position.lat(),
         marker.position.lng()
     );
+}
+
+function calculateTotalDistance(legs) {
+    let totalDistance = 0;
+    for (const leg of legs) {
+        totalDistance += leg.distance.value;
+    }
+
+    return totalDistance;
+}
+
+function turnSuccess($el, text, title) {
+    $el.removeClass('badge-warning badge-danger');
+    $el.addClass('badge-success');
+    setTextInfo($el, text, title);
+}
+
+function turnWarning($el, text, title) {
+    $el.removeClass('badge-success badge-danger');
+    $el.addClass('badge-warning');
+    setTextInfo($el, text, title);
+}
+
+function turnDanger($el, text, title) {
+    $el.removeClass('badge-success badge-warning');
+    $el.addClass('badge-danger');
+    setTextInfo($el, text, title);
+}
+
+function setTextInfo($el, text, title) {
+    if (text !== null) {
+        $el.text(text);
+    }
+
+    if (title !== null) {
+        $el.prop('title', title);
+    }
 }

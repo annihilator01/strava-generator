@@ -1,13 +1,20 @@
 const MAX_ROUTE_POINTS_NUM = 26;
 const LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+const routeStatus = {
+    ROUTE_IMPOSSIBLE: 'ri',
+    ROUTE_BUILD: 'rb',
+    ROUTE_UNNECESSARY: 'ru'
+}
+
 const activity_limit = {
     run: {
         val: 3000,
-        warn: 'Run activity must take at least 3km'
+        warn: 'Run activity must take at least 3 km'
     },
     bike: {
         val: 5000,
-        warn: 'Bike activity must take at least 5km'
+        warn: 'Bike activity must take at least 5 km'
     }
 }
 
@@ -27,7 +34,8 @@ let map,
     routeMarkers = {};
 
 let $markerMenu,
-    $statusBar;
+    $statusBar,
+    $statusBarInfo;
 
 async function initMap() {
     directionService = new google.maps.DirectionsService();
@@ -35,6 +43,7 @@ async function initMap() {
     geocoder = new google.maps.Geocoder();
     $markerMenu = $('#marker-menu');
     $statusBar = getStatusBar();
+    $statusBarInfo = $statusBar.children('#status-bar');
 
     let center_coords, zoom;
     getCurrentLocation()
@@ -97,8 +106,9 @@ function getCurrentLocation() {
 function getStatusBar() {
     return $('<h3/>').append($('<div/>', {
         id: 'status-bar',
-        class: 'badge badge-success no-select',
-        text: '0 km'
+        class: 'badge badge-warning no-select',
+        text: '0 km',
+        title: activity_limit.run.warn
     }))
     // return $('<div/>', {
     //     id: 'status-bar',
