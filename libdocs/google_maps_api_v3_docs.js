@@ -1487,7 +1487,7 @@ google.maps.DirectionsRenderer.prototype.getRouteIndex = function() {};
  * Set the renderer to use the result from the <code>DirectionsService</code>.
  * Setting a valid set of directions in this manner will display the directions
  * on the renderer&#39;s designated map and panel.
- * @param {google.maps.DirectionsResult} directions
+ * @param {{routes: []}} directions
  * @return {undefined}
  */
 google.maps.DirectionsRenderer.prototype.setDirections = function(

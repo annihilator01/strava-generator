@@ -2,6 +2,7 @@ function addMarker(coords, name) {
     const marker = new google.maps.Marker({
         position: coords,
         map: map,
+        draggable: true,
         title: name,
     });
 
@@ -60,7 +61,7 @@ function drawRoute() {
     const $locationListChildren = $locationList.children('.list-group-item');
 
     if ($locationListChildren.length < 2) {
-        directionsRenderer.setDirections({routes: []});
+        clearRouteRenderer();
         turnWarning($statusBarInfo, '0 km', activity_limit.run.warn);  // TODO [activity]
         return new Promise(resolve => resolve(routeStatus.ROUTE_UNNECESSARY));
     }
@@ -112,7 +113,7 @@ function processLegs(legs) {
         const marker = $(this).data('marker');
 
         if (i < legs.length) {
-            $(this).find('.location-name').html = `&nbsp; ${legs[i].start_address}`;
+            $(this).find('.location-name').html(`&nbsp; ${legs[i].start_address}`);
             marker.setTitle(legs[i].start_address);
             marker.setPosition(new google.maps.LatLng(
                 legs[i].start_location.lat(),
@@ -120,7 +121,7 @@ function processLegs(legs) {
             ));
             totalDistance += legs[i].distance.value;
         } else {
-            $(this).find('.location-name').html = `&nbsp; ${legs[i - 1].end_address}`;
+            $(this).find('.location-name').html(`&nbsp; ${legs[i - 1].end_address}`);
             marker.setTitle(legs[i - 1].end_address);
             marker.setPosition(new google.maps.LatLng(
                 legs[i - 1].end_location.lat(),
@@ -162,12 +163,20 @@ function addRoutePoint(marker) {
         $locationList.find(' > .list-group-item:last-child').before($routePoint);
     }
 
-    drawRoute()
-        .then(responseRouteStatus => {
-            if (responseRouteStatus === routeStatus.ROUTE_IMPOSSIBLE) {
-                $markerMenu.find('.remove-marker').trigger('click');
-            }
-        });
+    const handleDrawRoute = () => {  // TODO change name of location in location list
+        drawRoute()
+            .then(responseRouteStatus => {
+                if (responseRouteStatus === routeStatus.ROUTE_IMPOSSIBLE) {
+                    clearRouteRenderer();
+                    if (!isDanger($statusBarInfo)) {
+                        turnDanger($statusBarInfo, 'N/A', `Route cannot be built with this set of markers`);
+                    }
+                }
+            });
+    }
+
+    google.maps.event.addListener(marker, 'dragend', handleDrawRoute);
+    handleDrawRoute();
 
     return $routePoint;
 }
@@ -235,13 +244,8 @@ function getCoordsObject(marker) {
     );
 }
 
-function calculateTotalDistance(legs) {
-    let totalDistance = 0;
-    for (const leg of legs) {
-        totalDistance += leg.distance.value;
-    }
-
-    return totalDistance;
+function clearRouteRenderer() {
+    directionsRenderer.setDirections({routes: []});
 }
 
 function turnSuccess($el, text, title) {
@@ -260,6 +264,10 @@ function turnDanger($el, text, title) {
     $el.removeClass('badge-success badge-warning');
     $el.addClass('badge-danger');
     setTextInfo($el, text, title);
+}
+
+function isDanger($el) {
+    return $el.hasClass('badge-danger');
 }
 
 function setTextInfo($el, text, title) {

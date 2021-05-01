@@ -106,19 +106,10 @@ function getCurrentLocation() {
 function getStatusBar() {
     return $('<h3/>').append($('<div/>', {
         id: 'status-bar',
-        class: 'badge badge-warning no-select',
+        class: 'badge badge-warning no-select',  // TODO make no-select important
         text: '0 km',
         title: activity_limit.run.warn
-    }))
-    // return $('<div/>', {
-    //     id: 'status-bar',
-    //     class: '',
-    // }).append(
-    //     $('<div/>')
-    // ).append(
-    //     $('<div/>', {
-    //     })
-    // )
+    }));
 }
 
 function initDocumentBehaviour() {
