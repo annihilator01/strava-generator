@@ -52,7 +52,7 @@ function removeRoutePoint($routePoint) {
     delete routeMarkers[coordsString];
     $routePoint.remove();
 
-    drawRoute().then();
+    drawRoute();
 }
 
 
@@ -60,14 +60,12 @@ function drawRoute() {
     setMarkersLabels();
     const $locationListChildren = $locationList.children('.list-group-item');
 
-    if ($locationListChildren.length < 2) {
-        clearRouteRenderer();
-        turnWarning($statusBarInfo, '0 km', activity_limit.run.warn);  // TODO [activity]
-        return new Promise(resolve => resolve(routeStatus.ROUTE_UNNECESSARY));
+    if ($locationListChildren.length === 0) {
+        return;
     }
 
     let coordsArr = [];
-    $locationListChildren.each(function() {
+    $locationListChildren.each(function () {
         coordsArr.push(getCoordsString($(this).data('marker')));
     });
 
@@ -79,37 +77,48 @@ function drawRoute() {
         const waypointsArr = coordsArr.splice(1, coordsArr.length - 2);
         waypointsArr.forEach((coords) => {
             waypoints.push({
-               location: coords,
-               stopover: true
+                location: coords,
+                stopover: true
             });
         });
     }
 
-    return new Promise(resolve => {
-        directionService.route(
-            {
-                origin: origin,
-                destination: destination,
-                waypoints: waypoints,
-                travelMode: google.maps.TravelMode.WALKING
-            },
-            (response, status) => {
-                if (status === 'OK' && response) {
-                    directionsRenderer.setDirections(response);
-                    processLegs(response.routes[0].legs);
-                    resolve(routeStatus.ROUTE_BUILD);
+    directionService.route(
+        {
+            origin: origin,
+            destination: destination,
+            waypoints: waypoints,
+            travelMode: google.maps.TravelMode.WALKING
+        },
+        (response, status) => {
+            if (status === 'OK' && response) {
+                processLegs(response.routes[0].legs);
+                if ($locationListChildren.length < 2) {
+                    clearRouteRenderer();
+                    turnWarning(
+                        $statusBarInfo,
+                        '0 km', activity_limit[getCheckedActivity()].warn,
+                        'totalDistance', 0
+                    );
                 } else {
-                    resolve(routeStatus.ROUTE_IMPOSSIBLE);
+                    directionsRenderer.setDirections(response);
                 }
+            } else {
+                clearRouteRenderer();
+                turnDanger(
+                    $statusBarInfo,
+                    'N/A', `Route cannot be built with this set of markers`,
+                    'totalDistance', 0
+                );
             }
-        );
-    });
+        }
+    );
 }
 
 function processLegs(legs) {
     let totalDistance = 0;
     const $locationListChildren = $locationList.children('.list-group-item');
-    $locationListChildren.each(function(i) {
+    $locationListChildren.each(function (i) {
         const marker = $(this).data('marker');
 
         if (i < legs.length) {
@@ -132,10 +141,19 @@ function processLegs(legs) {
 
 
     const totalDistanceString = `${Number(totalDistance / 1000).toFixed(2)} km`;
-    if (totalDistance < activity_limit.run.val) {  // TODO [activity]
-        turnWarning($statusBarInfo, totalDistanceString, activity_limit.run.warn);  // TODO [activity]
+    const checkedActivity = getCheckedActivity();
+    if (totalDistance < activity_limit[checkedActivity].val) {
+        turnWarning(
+            $statusBarInfo,
+            totalDistanceString, activity_limit[checkedActivity].warn,
+            'totalDistance', totalDistance
+        );
     } else {
-        turnSuccess($statusBarInfo, totalDistanceString, '');  // TODO [activity]
+        turnSuccess(
+            $statusBarInfo,
+            totalDistanceString, '',
+            'totalDistance', totalDistance
+        );
     }
 }
 
@@ -163,20 +181,8 @@ function addRoutePoint(marker) {
         $locationList.find(' > .list-group-item:last-child').before($routePoint);
     }
 
-    const handleDrawRoute = () => {  // TODO change name of location in location list
-        drawRoute()
-            .then(responseRouteStatus => {
-                if (responseRouteStatus === routeStatus.ROUTE_IMPOSSIBLE) {
-                    clearRouteRenderer();
-                    if (!isDanger($statusBarInfo)) {
-                        turnDanger($statusBarInfo, 'N/A', `Route cannot be built with this set of markers`);
-                    }
-                }
-            });
-    }
-
-    google.maps.event.addListener(marker, 'dragend', handleDrawRoute);
-    handleDrawRoute();
+    google.maps.event.addListener(marker, 'dragend', drawRoute);
+    drawRoute();
 
     return $routePoint;
 }
@@ -224,7 +230,7 @@ function setMarkersLabels() {
 
         const label = {
             color: 'white',
-            fontWeight: 'white',
+            fontWeight: 'bold',
             text: LABELS[i]
         };
 
@@ -248,26 +254,25 @@ function clearRouteRenderer() {
     directionsRenderer.setDirections({routes: []});
 }
 
-function turnSuccess($el, text, title) {
+function turnSuccess($el, text, title, dataKey, dataValue) {
     $el.removeClass('badge-warning badge-danger');
     $el.addClass('badge-success');
+    setData($el, dataKey, dataValue);
     setTextInfo($el, text, title);
 }
 
-function turnWarning($el, text, title) {
+function turnWarning($el, text, title, dataKey, dataValue) {
     $el.removeClass('badge-success badge-danger');
     $el.addClass('badge-warning');
+    setData($el, dataKey, dataValue);
     setTextInfo($el, text, title);
 }
 
-function turnDanger($el, text, title) {
+function turnDanger($el, text, title, dataKey, dataValue) {
     $el.removeClass('badge-success badge-warning');
     $el.addClass('badge-danger');
+    setData($el, dataKey, dataValue);
     setTextInfo($el, text, title);
-}
-
-function isDanger($el) {
-    return $el.hasClass('badge-danger');
 }
 
 function setTextInfo($el, text, title) {
@@ -277,5 +282,11 @@ function setTextInfo($el, text, title) {
 
     if (title !== null) {
         $el.prop('title', title);
+    }
+}
+
+function setData($el, dataKey, dataValue) {
+    if (dataKey !== null) {
+        $el.data(dataKey, dataValue);
     }
 }

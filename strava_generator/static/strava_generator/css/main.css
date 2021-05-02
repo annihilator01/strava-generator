@@ -8,6 +8,10 @@
     box-shadow: rgba(0, 0, 0, 0.3) 0 1px 4px -1px;
 }
 
+#remove-all-markers {
+    width: 100%;
+}
+
 #location-list {
     /*max-height: 100px;*/
     overflow-y: auto;
@@ -42,6 +46,11 @@
 .list-group-item {
     padding-left: .75rem;
     padding-right: .75rem;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0069d9;
+    border-color: #0069d9;
 }
 
 .drag-item {

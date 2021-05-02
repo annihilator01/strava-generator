@@ -25,11 +25,26 @@
                             <div class="remove-marker dropdown-item"><i class="fas fa-trash fa-sm"></i>&nbsp; Remove marker</div>
                         </div>
                     </div>
-                    <div class="col-12 p-0 mt-3">
+                    <div class="col-10 col-sm p-0 mt-3">
                         <input id="location-input" type="text" class="form-control"
                                placeholder="Search for place...">
                     </div>
+                    <div class="col col-sm-1 p-0 mt-3 ml-1">
+                        <button id="remove-all-markers" class="btn btn-danger" title="Clear all markers">
+                            <i class="fas fa-trash fa-sm"></i>
+                        </button>
+                    </div>
                     <ul id="location-list" class="list-group col-12 p-0 mt-3"></ul>
+                </div>
+                <div class="row">
+                    <div class="btn-group btn-group-toggle w-100 mt-3" id="activity-type" data-toggle="buttons">
+                        <label class="btn btn-outline-primary shadow-none">
+                            <input type="radio" name="options" value="run" autocomplete="off" checked> Run Activity
+                        </label>
+                        <label class="btn btn-outline-primary shadow-none">
+                            <input type="radio" name="options" value="bike" autocomplete="off"> Bike Activity
+                        </label>
+                    </div>
                 </div>
             </form>
         </section>

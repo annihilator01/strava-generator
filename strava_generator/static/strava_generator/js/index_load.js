@@ -22,7 +22,9 @@ const activity_limit = {
 $(document).ready(() => {
     initDocumentBehaviour();
     initLocationInput();
+    initRemoveAllMarkersButton();
     initLocationList();
+    initActivityTypeGroup();
     initForm();
 });
 
@@ -44,6 +46,7 @@ async function initMap() {
     $markerMenu = $('#marker-menu');
     $statusBar = getStatusBar();
     $statusBarInfo = $statusBar.children('#status-bar');
+    $statusBarInfo.data('totalDistance', 0);
 
     let center_coords, zoom;
     getCurrentLocation()
@@ -106,7 +109,7 @@ function getCurrentLocation() {
 function getStatusBar() {
     return $('<h3/>').append($('<div/>', {
         id: 'status-bar',
-        class: 'badge badge-warning no-select',  // TODO make no-select important
+        class: 'badge badge-warning no-select',
         text: '0 km',
         title: activity_limit.run.warn
     }));
@@ -124,6 +127,58 @@ function initDocumentBehaviour() {
 
 const $locationInput = $('#location-input');
 function initLocationInput() {
+}
+
+
+const $removeAllMarkersButton = $('#remove-all-markers');
+function initRemoveAllMarkersButton() {
+    $removeAllMarkersButton.click(removeAllMarkers);
+}
+
+function removeAllMarkers() {
+    const $locationListChildren = $locationList.children('.list-group-item');
+
+    $locationListChildren.each(function () {
+        const marker = $(this).data('marker');
+        marker.setMap(null);
+    });
+
+    clearRouteRenderer();
+    turnWarning(
+        $statusBarInfo,
+        '0 km', activity_limit.run.warn,
+        'totalDistance', 0
+    );
+    $locationList.html('');
+    $removeAllMarkersButton.blur();
+}
+
+
+const $activityTypeGroup = $('#activity-type');
+function initActivityTypeGroup() {
+    $activityTypeGroup.change(updateStatusBarWithActivityType);
+}
+
+function updateStatusBarWithActivityType() {
+    const checkedActivity = getCheckedActivity();
+    const totalDistance = $statusBarInfo.data('totalDistance');
+    if (totalDistance < activity_limit[checkedActivity].val) {
+        turnWarning(
+            $statusBarInfo,
+            null, activity_limit[checkedActivity].warn,
+            null, null
+        );
+    } else {
+        turnSuccess(
+            $statusBarInfo,
+            null, '',
+            null, null
+        );
+    }
+}
+
+function getCheckedActivity() {
+    return $activityTypeGroup.find('input[name="options"]:checked').val();
 }
 
 
