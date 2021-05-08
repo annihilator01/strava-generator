@@ -23,9 +23,9 @@ def get_generated_strava_gpx(request):
     try:
         origin = service.get_coordinates(service.get_required(params, 'origin'))
         destination = service.get_coordinates(service.get_required(params, 'destination'))
-        waypoints = service.get_coordinates_list(params.get('waypoints'))
-        activity_type = service.validate_activity_type(params.get('activity_type', 'run').lower())
-        end_time = service.get_datetime_from_string(params.get('end_time'))
+        waypoints = service.get_coordinates_list(params.get('waypoints', ''))
+        activity_type = service.validate_activity_type(params.get('activity_type', ''))
+        end_time = service.get_datetime_from_string(params.get('end_time', ''))
     except (
             service.IncorrectCoordinatesFormatException,
             service.IncorrectActivityTypeException,
@@ -41,8 +41,8 @@ def get_generated_strava_gpx(request):
             string_now_time = service.get_string_from_datetime(now_time)
             string_end_time = service.get_string_from_datetime(end_time)
             return Response(
-                *_get_400_response(f'Activity end time ({string_end_time}) exceeds '
-                                   f'now time ({string_now_time})')
+                *_get_400_response(f'Activity end time &#171;{string_end_time}&#187; exceeds '
+                                   f'now time &#171;{string_now_time}&#187;')
             )
 
     try:

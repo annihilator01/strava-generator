@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'strava_generator.apps.StravaGeneratorConfig',
     'rest_framework',
     "sslserver",
+    'explorer',
 ]
 
 MIDDLEWARE = [
@@ -138,3 +139,7 @@ GMAPS_API_TOKEN = os.environ['GMAPS_API_TOKEN']
 
 MYLIBS_PATH = os.path.join(BASE_DIR, 'mylibs')
 sys.path.extend([MYLIBS_PATH])
+
+# SQL Explorer settings
+EXPLORER_CONNECTIONS = {'Default': 'default'}
+EXPLORER_DEFAULT_CONNECTION = 'default'

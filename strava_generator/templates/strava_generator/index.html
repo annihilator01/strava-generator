@@ -7,45 +7,127 @@
 {% endblock %}
 
 
+{% block css-before %}
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/zebra_datepicker@latest/dist/css/bootstrap/zebra_datepicker.min.css">
+{% endblock %}
+
+
 {% block content %}
     <header>
-        <nav class="navbar">
-            <a class="navbar-brand font-weight-bold" href="/">STRAVA GENERATOR</a>
+        <nav class="navbar justify-content-center mt-2">
+            <div class="brand-group">
+                <a class="navbar-brand m-0 font-weight-bold" href="/">STRAVA GENERATOR</a>
+                <a href="https://telegra.ph/STRAVA-GENERATOR-05-08" target="_blank"><i class="fas fa-info-circle"></i></a>
+            </div>
         </nav>
     </header>
 
-    <main>
+    <main class="flex-shrink-0 py-3">
         <section>
-            <form class="gen-form container px-4">
-                <div class="map-group row justify-content-center rounded-lg">
-                    <div class="col-12 p-0">
+            <form class="gen-form container px-3">
+                <div class="map-group form-group row justify-content-center rounded-lg">
+                    <div class="col-12 col-lg p-0">
                         <div id="map" class="rounded"></div>
-                        <div id="marker-menu" class="dropdown-menu">
-                            <div class="add-marker dropdown-item"><i class="far fa-plus-square fa-sm"></i>&nbsp; Add point to the route</div>
-                            <div class="remove-marker dropdown-item"><i class="fas fa-trash fa-sm"></i>&nbsp; Remove marker</div>
+                        <div id="marker-menu" class="dropdown-menu user-select-none">
+                            <div class="add-marker dropdown-item"><i class="far fa-plus-square fa-sm"></i>&nbsp; Add point to the route
+                            </div>
+                            <div class="remove-marker dropdown-item"><i class="fas fa-trash fa-sm"></i>&nbsp; Remove marker
+                            </div>
                         </div>
                     </div>
-                    <div class="col-10 col-sm p-0 mt-3">
-                        <input id="location-input" type="text" class="form-control"
-                               placeholder="Search for place...">
+                    <div class="col-12 col-lg-4 p-0 mt-3 mt-lg-0 ml-lg-2">
+                        <div class="row">
+                            <div class="col-9 col-sm-10 col-md-11 col-lg-10 p-0">
+                                <input id="location-input" type="text" class="form-control"
+                                       placeholder="Search for a location...">
+                            </div>
+                            <div class="col p-0 ml-1 mt-sm-0">
+                                <button id="remove-all-markers" type="button" class="btn btn-danger w-100"
+                                        title="Remove all route points">
+                                    <i class="fas fa-trash fa-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="location-list-container col p-0">
+                                <div id="no-route-points-info"
+                                     class="d-none d-lg-flex flex-column align-items-center justify-content-center h-100">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <p class="mt-1">No route points yet</p>
+                                </div>
+                                <ul id="location-list" class="list-group"></ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col col-sm-1 p-0 mt-3 ml-1">
-                        <button id="remove-all-markers" class="btn btn-danger" title="Clear all markers">
-                            <i class="fas fa-trash fa-sm"></i>
-                        </button>
-                    </div>
-                    <ul id="location-list" class="list-group col-12 p-0 mt-3"></ul>
                 </div>
+
                 <div class="row">
-                    <div class="btn-group btn-group-toggle w-100 mt-3" id="activity-type" data-toggle="buttons">
-                        <label class="btn btn-outline-primary shadow-none">
-                            <input type="radio" name="options" value="run" autocomplete="off" checked> Run Activity
-                        </label>
-                        <label class="btn btn-outline-primary shadow-none">
-                            <input type="radio" name="options" value="bike" autocomplete="off"> Bike Activity
-                        </label>
+
+                    <div class="activity-param form-group col-12 col-md text-center rounded-lg">
+                        <label class="" for="activity-type">Activity type</label>
+                        <div class="btn-group btn-group-toggle w-100" id="activity-type" data-toggle="buttons">
+                            <label class="btn btn-outline-secondary shadow-none">
+                                <input type="radio" name="options" value="run" autocomplete="off" checked> Run Activity
+                            </label>
+                            <label class="btn btn-outline-secondary shadow-none">
+                                <input type="radio" name="options" value="bike" autocomplete="off"> Bike Activity
+                            </label>
+                        </div>
                     </div>
+
+                    <!-- =========================================================================================== -->
+
+                    <div class="activity-param form-group col-12 col-md ml-md-3 text-center rounded-lg">
+                        <label class="" for="datetime-picker">Finish time</label>
+                        <div class="input-group">
+                            <div class="col-8 p-0">
+                                <input id="datetime-picker" type="text" class="form-control">
+                            </div>
+
+                            <div class="input-group-append col p-0" title="Use now time for the end of activity">
+                                <div class="now-time-group input-group-text w-100 justify-content-center">
+                                    <div class="custom-control custom-checkbox">
+                                        <input id="now-time-checkbox" type="checkbox" class="custom-control-input"
+                                               checked>
+                                        <label class="custom-control-label user-select-none"
+                                               for="now-time-checkbox">Now</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+
+                <!-- =============================================================================================== -->
+
+                <div class="row justify-content-center mt-3 text-center">
+                    <button id="generate-gpx-button" type="button" class="btn btn-success w-100" disabled>Generate .gpx file</button>
+                </div>
+
+                <!-- =============================================================================================== -->
+
+                <div id="error-modal" class="modal fade">
+                    <div class="modal-dialog modal-dialog-centered justify-content-center">
+                        <div class="modal-content">
+                            <div class="modal-header flex-column align-items-center">
+                                <div class="icon-box">
+                                    <i class="far fa-times-circle"></i>
+                                </div>
+                                <h3 class="modal-title w-100 mt-2">Error</h3>
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                                </button>
+                            </div>
+                            <div class="modal-body px-3 py-2">
+                                <p id="error-modal-message" class="mb-1"></p>
+                            </div>
+                            <div class="modal-footer justify-content-center">
+                                <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">OK</button>
+                            </div>
+                        </div>
+                    </div>
             </form>
         </section>
     </main>
@@ -57,6 +139,8 @@
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyByC_lKM2stBnzhmo556xHHDFt-7RAO7rQ&callback=initMap&language=en&libraries=places"
             async
     ></script>
+    <script src="https://cdn.jsdelivr.net/npm/zebra_datepicker@latest/dist/zebra_datepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
     <script src="{% static 'strava_generator/js/index_load.js' %}"></script>
     <script src="{% static 'strava_generator/js/index.js' %}"></script>
 {% endblock %}

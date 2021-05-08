@@ -150,9 +150,10 @@ class GpxGen:
 
         time_for_curr_point = self.end_time
         for i in reversed(range(len(self.activity_points))):
+            utc_time_for_curr_point = time_for_curr_point.astimezone(timezone('UTC'))
             point_time = self._get_element(
                 'time',
-                text=f"{time_for_curr_point.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+                text=f"{utc_time_for_curr_point.strftime('%Y-%m-%dT%H:%M:%SZ')}"
             )
             self.activity_points[i].extend([point_time])
 

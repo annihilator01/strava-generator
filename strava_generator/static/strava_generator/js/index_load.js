@@ -1,11 +1,8 @@
 const MAX_ROUTE_POINTS_NUM = 26;
 const LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-const routeStatus = {
-    ROUTE_IMPOSSIBLE: 'ri',
-    ROUTE_BUILD: 'rb',
-    ROUTE_UNNECESSARY: 'ru'
-}
+const INIT_MAP_ZOOM = 10;
+const DEFAULT_MAP_ZOOM = 15;
 
 const activity_limit = {
     run: {
@@ -25,8 +22,11 @@ $(document).ready(() => {
     initRemoveAllMarkersButton();
     initLocationList();
     initActivityTypeGroup();
+    initDatetimePicker();
+    initGenerateFileButton();
     initForm();
 });
+
 
 let map,
     autocomplete,
@@ -52,11 +52,11 @@ async function initMap() {
     getCurrentLocation()
         .then(position => {
             center_coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-            zoom = 17;
+            zoom = DEFAULT_MAP_ZOOM;
         })
         .catch(() => {
             center_coords = new google.maps.LatLng(59.9386, 30.3141);
-            zoom = 10;
+            zoom = INIT_MAP_ZOOM;
         })
         .finally(() => {
             map = new google.maps.Map($('#map')[0], {
@@ -65,7 +65,87 @@ async function initMap() {
                 disableDefaultUI: true,
                 zoomControl: true,
                 scaleControl: true,
-                fullscreenControl: true
+                fullscreenControl: true,
+                styles: [
+                    {elementType: "geometry", stylers: [{color: "#242f3e"}]},
+                    {elementType: "labels.text.stroke", stylers: [{color: "#242f3e"}]},
+                    {elementType: "labels.text.fill", stylers: [{color: "#746855"}]},
+                    {
+                        featureType: "administrative.locality",
+                        elementType: "labels.text.fill",
+                        stylers: [{color: "#d59563"}],
+                    },
+                    {
+                        featureType: "poi",
+                        elementType: "labels.text.fill",
+                        stylers: [{color: "#d59563"}],
+                    },
+                    {
+                        featureType: "poi.park",
+                        elementType: "geometry",
+                        stylers: [{color: "#263c3f"}],
+                    },
+                    {
+                        featureType: "poi.park",
+                        elementType: "labels.text.fill",
+                        stylers: [{color: "#6b9a76"}],
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry",
+                        stylers: [{color: "#38414e"}],
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry.stroke",
+                        stylers: [{color: "#212a37"}],
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "labels.text.fill",
+                        stylers: [{color: "#9ca5b3"}],
+                    },
+                    {
+                        featureType: "road.highway",
+                        elementType: "geometry",
+                        stylers: [{color: "#746855"}],
+                    },
+                    {
+                        featureType: "road.highway",
+                        elementType: "geometry.stroke",
+                        stylers: [{color: "#1f2835"}],
+                    },
+                    {
+                        featureType: "road.highway",
+                        elementType: "labels.text.fill",
+                        stylers: [{color: "#f3d19c"}],
+                    },
+                    {
+                        featureType: "transit",
+                        elementType: "geometry",
+                        stylers: [{color: "#2f3948"}],
+                    },
+                    {
+                        featureType: "transit.station",
+                        elementType: "labels.text.fill",
+                        stylers: [{color: "#d59563"}],
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "geometry",
+                        stylers: [{color: "#17263c"}],
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "labels.text.fill",
+                        stylers: [{color: "#515c6d"}],
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "labels.text.stroke",
+                        stylers: [{color: "#17263c"}],
+                    },
+                ],
             });
 
             map.addListener("click", (event) => {
@@ -87,6 +167,7 @@ async function initMap() {
 
     const locationInput = $locationInput[0];
     autocomplete = new google.maps.places.Autocomplete(locationInput);
+    autocomplete.setFields(['geometry', 'formatted_address']);
     google.maps.event.addListener(autocomplete, 'place_changed', () => {
         $locationInput.val('');
 
@@ -97,6 +178,7 @@ async function initMap() {
         )
 
         addMarker(coords, place.formatted_address);
+        map.setZoom(DEFAULT_MAP_ZOOM);
     });
 }
 
@@ -109,19 +191,26 @@ function getCurrentLocation() {
 function getStatusBar() {
     return $('<h3/>').append($('<div/>', {
         id: 'status-bar',
-        class: 'badge badge-warning no-select',
+        class: 'badge badge-warning user-select-none',
         text: '0 km',
         title: activity_limit.run.warn
     }));
 }
 
 function initDocumentBehaviour() {
-    $(document).click(() => {
-        $markerMenu.css('display', 'none');
+    $(document).on('click scroll',(e) => {
+        if (
+            e.target.currentSrc !== 'https://maps.gstatic.com/mapfiles/transparent.png' ||
+            e.type === 'scroll'
+        ) {
+            $markerMenu.css('display', 'none');
+        }
     });
-    $(window).contextmenu(() => {
-        $markerMenu.css('display', 'none');
-    })
+    $(window).contextmenu((e) => {
+        if (e.target.currentSrc !== 'https://maps.gstatic.com/mapfiles/transparent.png') {
+            $markerMenu.css('display', 'none');
+        }
+    });
 }
 
 
@@ -144,13 +233,15 @@ function removeAllMarkers() {
     });
 
     clearRouteRenderer();
+    showNoRoutePointsInfo();
     turnWarning(
         $statusBarInfo,
-        '0 km', activity_limit.run.warn,
+        '0 km', activity_limit[getCheckedActivity()].warn,
         'totalDistance', 0
     );
     $locationList.html('');
     $removeAllMarkersButton.blur();
+    $generateGpxButton.prop('disabled', true);
 }
 
 
@@ -182,6 +273,126 @@ function getCheckedActivity() {
 }
 
 
+$datetimePicker = $('#datetime-picker');
+$nowTimeCheckbox = $('#now-time-checkbox');
+function initDatetimePicker() {
+    $datetimePicker.Zebra_DatePicker({
+        format: 'Y-m-d H:i:s',
+        open_icon_only: true,
+        show_clear_date: false,
+        onChange: () => {
+            const dateObject = new Date($datetimePicker.val());
+            $datetimePicker.data('datetime', dateObject);
+        }
+    });
+
+    $nowTimeCheckbox.change(function () {
+        $datetimePicker.prop('disabled', this.checked);
+        if (this.checked) {
+            setNowTimeInInterval();
+        } else {
+            const intervalId = $datetimePicker.data('intervalId');
+            clearInterval(intervalId);
+        }
+        $datetimePicker.data('Zebra_DatePicker').update();
+    });
+
+    $nowTimeCheckbox.trigger('change');
+
+}
+
+function setNowTimeInInterval() {
+    function setNowTime() {
+        const nowTime = new Date();
+        $datetimePicker.data('Zebra_DatePicker').set_date(nowTime);
+        $datetimePicker.data('datetime', nowTime);
+    }
+
+    setNowTime();
+    const intervalId = setInterval(setNowTime, 1000);
+    $datetimePicker.data('intervalId', intervalId);
+}
+
+
+$generateGpxButton = $('#generate-gpx-button');
+$errorModal = $('#error-modal');
+$errorModalMessage = $('#error-modal-message');
+function initGenerateFileButton () {
+    $generateGpxButton.click(generateGpxFile);
+}
+
+function generateGpxFile() {
+    $generateGpxButton.prop('disabled', true);
+    $generateGpxButton.data('originalHtml', $generateGpxButton.html());
+    $generateGpxButton.html(getLoadingSpinner());
+
+    const $locationListChildren = $locationList.children('.list-group-item');
+    let coordsArr = [];
+    $locationListChildren.each(function () {
+        coordsArr.push(getCoordsString($(this).data('marker')));
+    });
+
+    const origin = coordsArr[0];
+    const destination = coordsArr[coordsArr.length - 1];
+    const waypoints = coordsArr.splice(1, coordsArr.length - 2).join('|');
+    const activityType = getCheckedActivity();
+
+    const endDatetime = $datetimePicker.data('datetime');
+    const endTime = getFormattedDatetime(endDatetime);
+
+    const urlRequest = `/api/v1/generate-strava-gpx?
+                        origin=${origin}&
+                        destination=${destination}&
+                        waypoints=${waypoints}&
+                        activity_type=${activityType}&
+                        end_time=${endTime}`
+                        .replace(/(\r\n|[\r\n\t\s])/gm, '');
+
+    fetch(urlRequest)
+        .then(rawResponse => rawResponse.json())
+        .then(response => {
+            const code = response.code;
+            switch (code) {
+                case 200:
+                    const generatedGpx = response.gpx;
+                    const blob = new Blob([generatedGpx], {type: 'text/plain'});
+
+                    const nowTime = getFormattedDatetime(new Date()).replace(/[-:]/gm, '_')
+                    saveAs(blob, `strava_${nowTime}.gpx`);
+                    break;
+
+                case 400:
+                    showErrorMessage(response.error);
+                    break;
+            }
+        })
+        .catch(() => {
+            showErrorMessage('Bad Internet connection')
+        })
+        .finally(() => {
+            $generateGpxButton.prop('disabled', false);
+            $generateGpxButton.html($generateGpxButton.data('originalHtml'));
+        })
+}
+
+function getLoadingSpinner() {
+    return `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Loading...`;
+}
+
+function getFormattedDatetime(datetime) {
+    return `${new Date(
+        datetime.getTime() -
+        (datetime.getTimezoneOffset() * 60000)
+    ).toJSON().split('.')[0]}`;
+}
+
+function showErrorMessage(text) {
+    $errorModalMessage.html(text);
+    $errorModal.modal('show');
+}
+
+
 const genForm = $('.gen-form');
 function initForm() {
     genForm.submit(e => {
@@ -195,6 +406,7 @@ function initLocationList() {
     $locationList.sortable({
         axis: 'y',
         handle: '.drag-item',
+        containment: 'parent',
         scrollSpeed: 10,
         tolerance: 'pointer',
         update: drawRoute
