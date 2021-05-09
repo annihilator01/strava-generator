@@ -1,0 +1,54 @@
+{% load static %}
+{% load compress %}
+
+<!doctype html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}{% endblock %}</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'strava_generator/icons/favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'strava_generator/icons/favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'strava_generator/icons/favicon/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'strava_generator/icons/favicon/site.webmanifest' %}">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'strava_generator/css/fontawesome-5.15.3/css/all.css' %}">
+
+    {% block css-before %}
+    {% endblock %}
+
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'strava_generator/css/main.css' %}">
+    {% endcompress %}
+
+    {% block css-after %}
+    {% endblock %}
+</head>
+
+<body class="d-flex flex-column h-100">
+{% block content %}
+{% endblock %}
+
+<footer class="mt-auto py-2 text-white-50">
+    <div class="container text-center">
+        <small>&copy; <a href="https://t.me/iamdubrovskii" style="color: inherit">IAMDUBROVSKII</a> {% now 'Y' %}</small>
+    </div>
+</footer>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script
+        src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+        crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+<script src="{% static 'strava_generator/js/jquery_mobile.js' %}"></script>
+{% block js %}
+{% endblock %}
+
+</body>
+</html>

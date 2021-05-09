@@ -1,0 +1,407 @@
+@import url('https://fonts.googleapis.com/css2?family=Acme&display=swap');
+
+
+:root {
+    --surface-bg-color: #212121;
+    --group-bg-color: #444a53;
+    --subgroup-bg-color: rgba(26, 30, 35, .7);
+
+    --input-bg-color: #262a2c;
+    --input-disabled-bg-color: #34373c;
+
+    --primary-color: #165eb6;
+    --primary-color-num: 22, 94, 182;
+    --primary-focus-box-shadow: 0 0 0 .2rem rgba(var(--primary-color-num), .25);
+    --btn-primary-hover-color: #13529f;
+    --btn-primary-active-color: #124b92;
+
+    --secondary-color: #ab774d;
+    --secondary-color-num: 171, 119, 77;
+    --secondary-focus-box-shadow: 0 0 0 .2rem rgba(var(--secondary-color-num), .25);
+    --btn-secondary-hover-color: #996b45;
+    --btn-secondary-active-color: #926642;
+
+    --modal-box-shadow: 0px 0px 12px 5px var(--secondary-color);
+
+    --default-border-color: #727272;
+    --default-text-color: rgba(255, 255, 255, .87);
+    --brand-text-color: rgba(255, 255, 255, .67);
+    --muted-text-color: rgba(255, 255, 255, .33);
+    --message-text-color: #9d9d9d;
+}
+
+body {
+    background-color: var(--surface-bg-color);
+    color: var(--default-text-color);
+}
+
+input {
+    border-color: transparent;
+}
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+
+#map {
+    width: auto;
+    height: 100%;
+    min-height: 500px;
+}
+
+#status-bar {
+    margin: 10px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 4px -1px;
+}
+
+#location-input {
+    background-color: var(--input-bg-color);
+    color: var(--default-text-color);
+}
+
+#no-route-points-info {
+    color: var(--muted-text-color);
+}
+
+#no-route-points-info p {
+    font-size: 25px;
+}
+
+#no-route-points-info .fa-map-marker-alt {
+    font-size: 3em;
+}
+
+#location-list {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 200px;
+}
+
+@media (min-width: 992px) {
+    #location-list {
+        max-height: 100%;
+    }
+}
+
+#datetime-picker {
+    cursor: auto;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    font-weight: inherit !important;
+}
+
+#datetime-picker[readonly] {
+    background-color: var(--input-bg-color);
+    color: var(--default-text-color);
+}
+
+#datetime-picker:disabled {
+    background-color: var(--input-disabled-bg-color) !important;
+    color: var(--muted-text-color);
+    font-weight: bold !important;
+}
+
+#marker-menu {
+    position: fixed;
+    background-color: var(--group-bg-color);
+}
+
+#marker-menu .dropdown-item {
+    background-color: var(--group-bg-color);
+    color: var(--default-text-color);
+}
+
+#marker-menu .dropdown-item:hover {
+    background-color: rgba(var(--secondary-color-num), .75);
+}
+
+#marker-menu .dropdown-item:active {
+    background-color: var(--secondary-color);
+}
+
+#generate-gpx-button {
+    max-width: 200px;
+    font-weight: bold;
+}
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+
+.brand-group {
+    position: relative;
+}
+
+.brand-group .fa-info-circle {
+    position: absolute;
+    color: var(--brand-text-color);
+    font-size: .9em;
+    top: 7px;
+    right: -17px;
+}
+
+@media (min-width: 992px) {
+    .brand-group .fa-info-circle {
+        font-size: 1.3em;
+        top: 14px;
+        right: -24px;
+    }
+}
+
+.navbar-brand {
+    font-family: 'Acme', sans-serif;
+    font-size: 30px;
+    color: var(--brand-text-color);
+}
+
+@media (min-width: 992px) {
+    .brand-group .fa-info-circle {
+
+    }
+
+    .navbar-brand {
+        font-size: 50px;
+    }
+}
+
+.navbar-brand:hover, .brand-group .fa-info-circle:hover {
+    color: var(--secondary-color);
+}
+
+.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.btn-outline-secondary {
+    border-color: var(--secondary-color) !important;
+    color: var(--secondary-color) !important;
+}
+
+.btn-outline-secondary.active, .btn-outline-secondary.active:hover {
+    background-color: var(--secondary-color) !important;
+    color: var(--default-text-color) !important;
+    cursor: default !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--btn-secondary-hover-color) !important;
+    border-color: var(--btn-secondary-hover-color) !important;
+    color: var(--default-text-color) !important;
+}
+
+.btn-outline-secondary:active {
+    background-color: var(--btn-secondary-active-color) !important;
+    border-color: var(--btn-secondary-active-color) !important;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    color: var(--default-text-color) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--btn-secondary-hover-color) !important;
+    border-color: var(--btn-secondary-hover-color) !important;
+}
+
+.btn-secondary:active {
+    background-color: var(--btn-secondary-active-color) !important;
+    border-color: var(--btn-secondary-active-color) !important;
+}
+
+.btn-secondary:focus {
+    box-shadow: var(--secondary-focus-box-shadow) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--default-text-color) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--btn-primary-hover-color) !important;
+    border-color: var(--btn-primary-hover-color) !important;
+}
+
+.btn-primary:active {
+    background-color: var(--btn-primary-active-color) !important;
+    border-color: var(--btn-primary-active-color) !important;
+}
+
+.btn-primary:focus {
+    box-shadow: var(--primary-focus-box-shadow) !important;
+}
+
+.btn-primary:disabled {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.form-control, .input-group-text {
+    border-color: var(--default-border-color);
+}
+
+.form-control:focus {
+    border-color: var(--secondary-color);
+    box-shadow: var(--secondary-focus-box-shadow);
+}
+
+.custom-control-input:active ~ .custom-control-label::before {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+    border-color: var(--secondary-color);
+    background-color: var(--secondary-color);
+}
+
+.custom-control-input:focus ~ .custom-control-label::before {
+    box-shadow: var(--secondary-focus-box-shadow) !important;
+    border-color: var(--secondary-color) !important;
+}
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+
+.dropdown-item {
+    padding: .20rem .75rem;
+    cursor: pointer;
+}
+
+.map-group {
+    width: auto;
+    padding: 10px;
+    background-color: var(--group-bg-color);
+}
+
+@media (min-width: 992px) {
+    .location-list-container {
+        height: 500px;
+    }
+}
+
+.list-group-item {
+    padding-left: .75rem;
+    padding-right: .75rem;
+    background-color: var(--subgroup-bg-color);
+    border-color: var(--default-border-color);
+    font-weight: bold;
+}
+
+.drag-item {
+    color: var(--default-text-color);
+}
+
+.drag-item:hover {
+    color: var(--secondary-color);
+    cursor: move;
+}
+
+.circle {
+    position: relative;
+    border-radius: 50%;
+    padding: 10px;
+    border: 3px solid var(--secondary-color);
+    color: var(--secondary-color);
+    text-align: center;
+    font-weight: bold;
+}
+
+.alph {
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+.remove-item {
+    color: #cb0808;
+}
+
+.remove-item:hover {
+    color: red;
+    cursor: pointer;
+}
+
+.activity-param {
+    background-color: var(--group-bg-color);
+    padding: 10px;
+}
+
+.activity-param label, .activity-param input {
+    font-weight: 600 !important;
+}
+
+.now-time-group {
+    background-color: var(--input-bg-color);
+    color: var(--default-text-color);
+}
+
+/*  ------------------------------------------------------------------------------------------------------------------*/
+
+/* TODO datetime picker customization */
+.Zebra_DatePicker_Icon_Wrapper {
+    display: block !important;
+    z-index: 999;
+    width: 100% !important;
+    position: relative !important;
+}
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+
+#error-modal .modal-content {
+    background: var(--group-bg-color);
+    border-color: transparent;
+    box-shadow: var(--modal-box-shadow);
+    width: 90%;
+}
+
+@media (min-width: 768px) {
+    #error-modal .modal-content {
+        width: 100%;
+    }
+}
+
+#error-modal .modal-header {
+    border-bottom: none;
+    position: relative;
+}
+
+#error-modal h3 {
+    text-align: center;
+    color: var(--default-text-color);
+}
+
+#error-modal .close {
+    position: absolute;
+    top: 2px;
+    right: 7px;
+    color: var(--brand-text-color);
+}
+
+#error-modal .icon-box {
+    width: 80px;
+    height: 80px;
+    text-align: center;
+}
+
+#error-modal .icon-box i {
+    color: #f15e5e;
+    font-size: 70px;
+    display: inline-block;
+    margin-top: 13px;
+}
+
+#error-modal .modal-body {
+    text-align: center;
+    color: var(--message-text-color);
+    font-size: 1.1rem;
+}
+
+#error-modal .modal-footer {
+    border: none;
+    text-align: center;
+    font-size: 13px;
+}
+
+#error-modal .btn {
+    min-width: 120px;
+    min-height: 40px;
+}
