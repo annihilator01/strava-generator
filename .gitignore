@@ -62,6 +62,9 @@ db.sqlite3
 db_debug.sqlite3
 db.sqlite3-journal
 
+# Gunicorn stuff:
+.gunicorn_env
+
 # Flask stuff:
 instance/
 .webassets-cache
