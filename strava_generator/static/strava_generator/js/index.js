@@ -110,6 +110,7 @@ function drawRoute() {
     }
 
     turnSpinner($statusBarInfo);
+    $generateGpxButton.prop('disabled', true);
 
     directionService.route(
         {
@@ -128,7 +129,6 @@ function drawRoute() {
                         '0 km', activity_limit[getCheckedActivity()].warn,
                         'totalDistance', 0
                     );
-                    $generateGpxButton.prop('disabled', true);
                 } else {
                     directionsRenderer.setDirections(response);
                     $generateGpxButton.prop('disabled', false);
@@ -140,7 +140,6 @@ function drawRoute() {
                     'N/A', `Route cannot be built with this set of markers`,
                     'totalDistance', 0
                 );
-                $generateGpxButton.prop('disabled', true);
             }
         }
     );

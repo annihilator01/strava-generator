@@ -1,5 +1,6 @@
 {% extends 'strava_generator/base.html' %}
 {% load static %}
+{% load compress %}
 
 
 {% block title %}
@@ -104,7 +105,7 @@
                 <!-- =============================================================================================== -->
 
                 <div class="row justify-content-center mt-3 text-center">
-                    <button id="generate-gpx-button" type="button" class="btn btn-success w-100" disabled>Generate .gpx file</button>
+                    <button id="generate-gpx-button" type="button" class="btn btn-primary w-100" disabled>Generate .gpx file</button>
                 </div>
 
                 <!-- =============================================================================================== -->
@@ -141,6 +142,9 @@
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/zebra_datepicker@latest/dist/zebra_datepicker.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+
+    {% compress js %}
     <script src="{% static 'strava_generator/js/index_load.js' %}"></script>
     <script src="{% static 'strava_generator/js/index.js' %}"></script>
+    {% endcompress %}
 {% endblock %}

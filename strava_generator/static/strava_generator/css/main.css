@@ -5,19 +5,29 @@
     --surface-bg-color: #212121;
     --group-bg-color: #444a53;
     --subgroup-bg-color: rgba(26, 30, 35, .7);
+
     --input-bg-color: #262a2c;
     --input-disabled-bg-color: #34373c;
+
+    --primary-color: #165eb6;
+    --primary-color-num: 22, 94, 182;
+    --primary-focus-box-shadow: 0 0 0 .2rem rgba(var(--primary-color-num), .25);
+    --btn-primary-hover-color: #13529f;
+    --btn-primary-active-color: #124b92;
+
     --secondary-color: #ab774d;
     --secondary-color-num: 171, 119, 77;
     --secondary-focus-box-shadow: 0 0 0 .2rem rgba(var(--secondary-color-num), .25);
+    --btn-secondary-hover-color: #996b45;
+    --btn-secondary-active-color: #926642;
+
     --modal-box-shadow: 0px 0px 12px 5px var(--secondary-color);
+
     --default-border-color: #727272;
     --default-text-color: rgba(255, 255, 255, .87);
     --brand-text-color: rgba(255, 255, 255, .67);
     --muted-text-color: rgba(255, 255, 255, .33);
     --message-text-color: #9d9d9d;
-    --btn-secondary-hover: #996b45;
-    --btn-secondary-active: #926642;
 }
 
 body {
@@ -109,7 +119,6 @@ input {
 
 #generate-gpx-button {
     max-width: 200px;
-    color: var(--default-text-color);
     font-weight: bold;
 }
 
@@ -172,14 +181,14 @@ input {
 }
 
 .btn-outline-secondary:hover {
-    background-color: var(--btn-secondary-hover) !important;
-    border-color: var(--btn-secondary-hover) !important;
+    background-color: var(--btn-secondary-hover-color) !important;
+    border-color: var(--btn-secondary-hover-color) !important;
     color: var(--default-text-color) !important;
 }
 
 .btn-outline-secondary:active {
-    background-color: var(--btn-secondary-active) !important;
-    border-color: var(--btn-secondary-active) !important;
+    background-color: var(--btn-secondary-active-color) !important;
+    border-color: var(--btn-secondary-active-color) !important;
 }
 
 .btn-secondary {
@@ -189,17 +198,42 @@ input {
 }
 
 .btn-secondary:hover {
-    background-color: var(--btn-secondary-hover) !important;
-    border-color: var(--btn-secondary-hover) !important;
+    background-color: var(--btn-secondary-hover-color) !important;
+    border-color: var(--btn-secondary-hover-color) !important;
 }
 
 .btn-secondary:active {
-    background-color: var(--btn-secondary-active) !important;
-    border-color: var(--btn-secondary-active) !important;
+    background-color: var(--btn-secondary-active-color) !important;
+    border-color: var(--btn-secondary-active-color) !important;
 }
 
 .btn-secondary:focus {
     box-shadow: var(--secondary-focus-box-shadow) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--default-text-color) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--btn-primary-hover-color) !important;
+    border-color: var(--btn-primary-hover-color) !important;
+}
+
+.btn-primary:active {
+    background-color: var(--btn-primary-active-color) !important;
+    border-color: var(--btn-primary-active-color) !important;
+}
+
+.btn-primary:focus {
+    box-shadow: var(--primary-focus-box-shadow) !important;
+}
+
+.btn-primary:disabled {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
 }
 
 .form-control, .input-group-text {

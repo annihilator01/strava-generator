@@ -1,4 +1,5 @@
 {% load static %}
+{% load compress %}
 
 <!doctype html>
 <html lang="en" class="h-100">
@@ -20,11 +21,12 @@
     {% block css-before %}
     {% endblock %}
 
+    {% compress css %}
     <link rel="stylesheet" href="{% static 'strava_generator/css/main.css' %}">
+    {% endcompress %}
 
     {% block css-after %}
     {% endblock %}
-
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -47,5 +49,6 @@
 <script src="{% static 'strava_generator/js/jquery_mobile.js' %}"></script>
 {% block js %}
 {% endblock %}
+
 </body>
 </html>
