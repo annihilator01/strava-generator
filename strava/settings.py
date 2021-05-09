@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'strava.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3' if not DEBUG else BASE_DIR / 'db_debug.sqlite3',
     }
 }
 
