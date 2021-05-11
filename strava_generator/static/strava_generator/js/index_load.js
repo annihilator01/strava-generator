@@ -39,7 +39,7 @@ let $markerMenu,
     $statusBar,
     $statusBarInfo;
 
-async function initMap() {
+async function initMap2() {
     directionService = new google.maps.DirectionsService();
     directionsRenderer = new google.maps.DirectionsRenderer({suppressMarkers: true});
     geocoder = new google.maps.Geocoder();
@@ -315,8 +315,6 @@ function setNowTimeInInterval() {
 
 
 $generateGpxButton = $('#generate-gpx-button');
-$errorModal = $('#error-modal');
-$errorModalMessage = $('#error-modal-message');
 function initGenerateFileButton () {
     $generateGpxButton.click(generateGpxFile);
 }
@@ -385,11 +383,6 @@ function getFormattedDatetime(datetime) {
         datetime.getTime() -
         (datetime.getTimezoneOffset() * 60000)
     ).toJSON().split('.')[0]}`;
-}
-
-function showErrorMessage(text) {
-    $errorModalMessage.html(text);
-    $errorModal.modal('show');
 }
 
 

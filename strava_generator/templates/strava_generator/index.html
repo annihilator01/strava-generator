@@ -14,35 +14,45 @@
             href="https://cdn.jsdelivr.net/npm/zebra_datepicker@latest/dist/css/bootstrap/zebra_datepicker.min.css">
 {% endblock %}
 
+{% block css-after %}
+    {% compress css %}
+        <link rel="stylesheet" href="{% static 'strava_generator/css/index.css' %}">
+    {% endcompress %}
+{% endblock %}
+
 
 {% block content %}
-    <header>
-        <nav class="navbar justify-content-center mt-2">
-            <div class="brand-group">
-                <a class="navbar-brand m-0 font-weight-bold" href="/">STRAVA GENERATOR</a>
-                <a href="https://telegra.ph/STRAVA-GENERATOR-05-08" target="_blank"><i class="fas fa-info-circle"></i></a>
-            </div>
-        </nav>
-    </header>
+{#    <header>#}
+{#        <nav class="navbar justify-content-center mt-2">#}
+{#            <div class="brand-group">#}
+{#                <a class="navbar-brand m-0 font-weight-bold" href="/">STRAVA GENERATOR</a>#}
+{#                <a href="https://telegra.ph/STRAVA-GENERATOR-05-08" target="_blank"><i#}
+{#                        class="fas fa-info-circle"></i></a>#}
+{#            </div>#}
+{#        </nav>#}
+{#    </header>#}
 
-    <main class="flex-shrink-0 py-3">
-        <section>
+    <main class="d-flex align-items-center align-content-center justify-content-center flex-shrink-0 flex-grow-1">
+        <section class="row p-0 justify-content-center flex-shrink-1 flex-grow-1 py-3 py-sm-2 py-md-3 py-lg-0">
             <form class="gen-form container px-3">
                 <div class="map-group form-group row justify-content-center rounded-lg">
                     <div class="col-12 col-lg p-0">
                         <div id="map" class="rounded"></div>
                         <div id="marker-menu" class="dropdown-menu user-select-none">
-                            <div class="add-marker dropdown-item"><i class="far fa-plus-square fa-sm"></i>&nbsp; Add point to the route
+                            <div class="add-marker dropdown-item"><i class="far fa-plus-square fa-sm"></i>&nbsp; Add
+                                point to the route
                             </div>
-                            <div class="remove-marker dropdown-item"><i class="fas fa-trash fa-sm"></i>&nbsp; Remove marker
+                            <div class="remove-marker dropdown-item"><i class="fas fa-trash fa-sm"></i>&nbsp; Remove
+                                marker
                             </div>
                         </div>
                     </div>
                     <div class="col-12 col-lg-4 p-0 mt-3 mt-lg-0 ml-lg-2">
                         <div class="row">
                             <div class="col-9 col-sm-10 col-md-11 col-lg-10 p-0">
+                                <label for="location-input" class="d-none">Location input</label>
                                 <input id="location-input" type="text" class="form-control"
-                                       placeholder="Search for a location...">
+                                       placeholder="Search for a location..." autocomplete="off">
                             </div>
                             <div class="col p-0 ml-1 mt-sm-0">
                                 <button id="remove-all-markers" type="button" class="btn btn-danger w-100"
@@ -105,7 +115,9 @@
                 <!-- =============================================================================================== -->
 
                 <div class="row justify-content-center mt-3 text-center">
-                    <button id="generate-gpx-button" type="button" class="btn btn-primary w-100" disabled>Generate .gpx file</button>
+                    <button id="generate-gpx-button" type="button" class="btn btn-primary w-100" disabled>Generate .gpx
+                        file
+                    </button>
                 </div>
 
                 <!-- =============================================================================================== -->
@@ -125,10 +137,13 @@
                                 <p id="error-modal-message" class="mb-1"></p>
                             </div>
                             <div class="modal-footer justify-content-center">
-                                <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">OK</button>
+                                <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">
+                                    OK
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
             </form>
         </section>
     </main>
@@ -144,7 +159,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
 
     {% compress js %}
-    <script src="{% static 'strava_generator/js/index_load.js' %}"></script>
-    <script src="{% static 'strava_generator/js/index.js' %}"></script>
+        <script src="{% static 'strava_generator/js/index_load.js' %}"></script>
+        <script src="{% static 'strava_generator/js/index.js' %}"></script>
     {% endcompress %}
 {% endblock %}

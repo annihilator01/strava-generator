@@ -1,0 +1,59 @@
+{% extends 'strava_generator/base.html' %}
+{% load static %}
+{% load compress %}
+
+
+{% block css-after %}
+    {% compress css %}
+        <link rel="stylesheet" href="{% static 'strava_generator/css/registration.css' %}">
+    {% endcompress %}
+{% endblock %}
+
+
+{% block content %}
+{#    <header>#}
+{#        <nav class="navbar justify-content-center mt-2">#}
+{#            <div class="brand-group">#}
+{#                <a class="navbar-brand m-0 font-weight-bold" href="/">STRAVA GENERATOR</a>#}
+{#            </div>#}
+{#        </nav>#}
+{#    </header>#}
+
+    {% block main-contet %}
+    {% endblock %}
+
+    <div id="error-modal" class="modal fade">
+        <div class="modal-dialog modal-dialog-centered justify-content-center">
+            <div class="modal-content">
+                <div class="modal-header flex-column align-items-center">
+                    <div class="icon-box">
+                        <i class="far fa-times-circle"></i>
+                    </div>
+                    <h3 class="modal-title w-100 mt-2">Error</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                    </button>
+                </div>
+                <div class="modal-body px-3 py-2">
+                    <p id="error-modal-message" class="mb-1"></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    {% compress js %}
+        <script type="text/javascript">
+            const errorInfo = '{{ error_info | escapejs }}';
+            if (errorInfo) {
+                showErrorMessage(errorInfo);
+            }
+        </script>
+    {% endcompress %}
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'strava_generator/registration/base_registration.html' %}
+{% load static %}
+{% load compress %}
+
+
+{% block main-contet %}
+    <main class="d-flex align-items-center align-content-center justify-content-center flex-shrink-0 flex-grow-1">
+        <section class="form-section row p-0 justify-content-center flex-shrink-1 flex-grow-1">
+            <form id="sign-in-form" class="sign-form col-10 col-sm-8 col-md-6 col-lg-4 col-xl-3 m-0 rounded-lg" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        </div>
+
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Username" maxlength="120" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        </div>
+
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Password" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="d-flex form-group justify-content-center">
+                    <button class="btn btn-primary font-weight-bold w-100" type="submit">SIGN IN</button>
+                </div>
+
+                <div class="sign-hint d-flex justify-content-end">
+                    <small>Don't have an account? <a href="/signup/" class="font-weight-bold">Sign Up</a></small>
+                </div>
+            </form>
+        </section>
+    </main>
+{% endblock %}
+
+
+{% block js %}
+     {{ block.super }}
+
+    {% compress js %}
+        <script src="{% static 'strava_generator/js/registration/signin.js' %}"></script>
+    {% endcompress %}
+{% endblock %}

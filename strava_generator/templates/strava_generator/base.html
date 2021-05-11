@@ -10,9 +10,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{% block title %}{% endblock %}</title>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'strava_generator/icons/favicon/apple-touch-icon.png' %}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'strava_generator/icons/favicon/favicon-32x32.png' %}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'strava_generator/icons/favicon/favicon-16x16.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180"
+          href="{% static 'strava_generator/icons/favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32"
+          href="{% static 'strava_generator/icons/favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16"
+          href="{% static 'strava_generator/icons/favicon/favicon-16x16.png' %}">
     <link rel="manifest" href="{% static 'strava_generator/icons/favicon/site.webmanifest' %}">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
@@ -22,7 +25,7 @@
     {% endblock %}
 
     {% compress css %}
-    <link rel="stylesheet" href="{% static 'strava_generator/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'strava_generator/css/core.css' %}">
     {% endcompress %}
 
     {% block css-after %}
@@ -30,12 +33,57 @@
 </head>
 
 <body class="d-flex flex-column h-100">
+
+{% block navbar %}
+    <header>
+        <nav class="navbar navbar-expand-sm justify-content-center py-3 py-lg-4">
+            {% if user.is_authenticated %}
+                <div class="navbar-fake order-2 order-sm-0"></div>
+            {% endif %}
+
+            <a class="navbar-brand p-0 m-0 font-weight-bold order-1" href="/">STRAVA GENERATOR</a>
+
+            {% if user.is_authenticated %}
+                <button class="d-flex d-sm-none navbar-toggler justify-content-start p-0 order-0"
+                        type="button" data-toggle="collapse"
+                        data-target="#navbar-additional-content" aria-controls="navbar-additional-content"
+                        aria-expanded="false">
+                    <span class="fas fa-bars"></span>
+                </button>
+
+                <div class="collapse navbar-collapse order-2 justify-content-end" id="navbar-additional-content">
+                    <ul class="navbar-nav">
+                        <li class="nav-item order-1 order-sm-0">
+                            <a class="nav-link font-weight-bold" role="button" id="faq"
+                               aria-expanded="false">
+                                FAQ
+                            </a>
+                        </li>
+
+                        <li class="nav-item dropdown order-0 order-sm-1">
+                            <a class="nav-link dropdown-toggle font-weight-bold" role="button" id="username"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {{ user.username }}
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="username">
+                                <a class="dropdown-item" href="#">Uses Left: {{ user.active_usage_token.uses_left }}</a>
+                                <a class="dropdown-item" href="/signout">Sign Out</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            {% endif %}
+        </nav>
+    </header>
+{% endblock %}
+
 {% block content %}
 {% endblock %}
 
 <footer class="mt-auto py-2 text-white-50">
     <div class="container text-center">
-        <small>&copy; <a href="https://t.me/iamdubrovskii" style="color: inherit">IAMDUBROVSKII</a> {% now 'Y' %}</small>
+        <small>&copy; <a href="https://t.me/iamdubrovskii" style="color: inherit">IAMDUBROVSKII</a> {% now 'Y' %}
+        </small>
     </div>
 </footer>
 
@@ -47,6 +95,11 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
 <script src="{% static 'strava_generator/js/jquery_mobile.js' %}"></script>
+
+{% compress js %}
+    <script src="{% static 'strava_generator/js/core.js' %}"></script>
+{% endcompress %}
+
 {% block js %}
 {% endblock %}
 

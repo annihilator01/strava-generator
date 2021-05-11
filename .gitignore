@@ -59,7 +59,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
-db_debug.sqlite3
+debug.sqlite3
 db.sqlite3-journal
 
 # Gunicorn stuff:

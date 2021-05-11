@@ -1,0 +1,55 @@
+main .form-section {
+    margin-bottom: 6em;
+}
+
+input {
+    background-color: var(--input-bg-color) !important;
+    border-color: var(--secondary-color) !important;
+    color: var(--default-text-color) !important;
+    z-index: 999 !important;
+}
+
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+
+
+.input-group-text {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
+    color: var(--default-text-color) !important;
+}
+
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+
+
+.sign-form {
+    background-color: var(--group-bg-color);
+    padding: 15px;
+}
+
+.sign-form .sign-hint small {
+    color: var(--muted-text-color);
+}
+
+.sign-form .sign-hint a {
+    color: var(--secondary-color);
+    filter: brightness(1.4);
+}
+
+.sign-form .sign-hint a:hover {
+    filter: brightness(1);
+}
+
+.contact-info {
+    position: absolute;
+    z-index: 999;
+    right: .6em;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+#usage-token {
+    padding-right: 1.9rem !important;
+}
