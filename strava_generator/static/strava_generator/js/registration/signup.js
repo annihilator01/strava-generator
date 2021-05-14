@@ -95,7 +95,6 @@ $usageToken = $('#usage-token');
 function validateUsageToken() {
     const usageToken = $usageToken.val();
 
-    console.log(usageToken.length);
     if (usageToken.length === 0) {
         addErrorMessage($usageToken.parent(), 'Usage token is empty');
         $usageToken.addClass('border-danger');

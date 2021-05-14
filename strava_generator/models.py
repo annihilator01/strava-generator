@@ -1,9 +1,11 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.contrib.auth.validators import ASCIIUsernameValidator
+from django.db import models, transaction
 from django.template.defaultfilters import truncatechars
 from django.utils.translation import gettext_lazy as _
+from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -30,28 +32,12 @@ class Visitor(models.Model):
         return self.ip
 
 
-class Visit(models.Model):
-    visitor = models.ForeignKey(
-        'Visitor',
-        on_delete=models.SET_NULL,
-        null=True,
-    )
-
-    user_agent = models.TextField(
-        db_column='user_agent',
-        null=True,
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return str(self.visitor)
-
-
 ########################################################################################################################
 
 
 class CustomUser(AbstractUser):
+    username_validator = ASCIIUsernameValidator()
+
     class CustomUserStatus(models.TextChoices):
         ACTIVE = 'active', _('Active'),
         INACTIVE = 'inactive', _('Inactive')
@@ -80,16 +66,38 @@ class CustomUser(AbstractUser):
         verbose_name = 'Custom user'
         verbose_name_plural = 'Custom users'
 
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        if self.active_usage_token:
+            if self.active_usage_token.status == UsageToken.UsageTokenStatus.INACTIVE:
+                self.active_usage_token = None
+            elif self.active_usage_token.status != UsageToken.UsageTokenStatus.INUSE:
+                self.active_usage_token.status = self.active_usage_token.UsageTokenStatus.INUSE
+                self.active_usage_token.save()
+        super(CustomUser, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.username
 
 
 class UsageToken(models.Model):
-    value = models.UUIDField(
+    class UsageTokenStatus(models.TextChoices):
+        ACTIVE = 'active', _('Active')
+        INUSE = 'in-use', _('In use'),
+        INACTIVE = 'inactive', _('Inactive'),
+
+    value = models.CharField(
         db_column='value',
-        default=uuid.uuid4,
+        max_length=32,
+        default=get_random_string(length=32),
         editable=False,
-        unique=True
+        unique=True,
+    )
+
+    status = models.TextField(
+        db_column='status',
+        choices=UsageTokenStatus.choices,
+        default=UsageTokenStatus.ACTIVE,
     )
 
     uses_left = models.IntegerField(
@@ -100,15 +108,21 @@ class UsageToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if self.uses_left <= 0:
+            self.status = self.UsageTokenStatus.INACTIVE
+        super(UsageToken, self).save(*args, **kwargs)
+
     def __str__(self):
         return str(self.value)
+
 
 ########################################################################################################################
 
 
 class Action(models.Model):
-    visitor = models.ForeignKey(
-        'Visitor',
+    user = models.ForeignKey(
+        'CustomUser',
         on_delete=models.SET_NULL,
         null=True,
     )
@@ -130,4 +144,4 @@ class Action(models.Model):
         return truncatechars(self.action_url, 50)
 
     def __str__(self):
-        return str(self.visitor)
+        return str(self.user)

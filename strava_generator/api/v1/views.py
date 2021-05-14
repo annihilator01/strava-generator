@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -17,7 +18,11 @@ def _get_400_response(msg):
 
 @api_view(['GET'])
 def get_generated_strava_gpx(request):
-    service.register_action(request)
+    # service.register_action(request)
+    try:
+        service.redirection_after_user_validation(request)
+    except ValidationError as ve:
+        return ve.args[0]
 
     params = request.query_params
     try:

@@ -1,15 +1,10 @@
 from django.contrib import admin
-from .models import Visitor, Visit, Action, CustomUser, UsageToken
+from .models import Visitor, Action, CustomUser, UsageToken
 
 
 @admin.register(Visitor)
 class VisitorAdmin(admin.ModelAdmin):
     list_display = ('ip', 'created_at')
-
-
-@admin.register(Visit)
-class VisitAdmin(admin.ModelAdmin):
-    list_display = ('visitor', 'created_at')
 
 
 @admin.register(CustomUser)
@@ -28,6 +23,7 @@ class CustomUserAdmin(admin.ModelAdmin):
 class UsageTokenAdmin(admin.ModelAdmin):
     list_display = (
         'value',
+        'status',
         'uses_left',
         'created_at',
         'updated_at',
@@ -36,4 +32,4 @@ class UsageTokenAdmin(admin.ModelAdmin):
 
 @admin.register(Action)
 class ActionAdmin(admin.ModelAdmin):
-    list_display = ('visitor', 'short_action_url', 'created_at')
+    list_display = ('user', 'short_action_url', 'created_at')

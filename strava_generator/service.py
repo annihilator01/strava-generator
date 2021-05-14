@@ -3,10 +3,20 @@ import googlemaps
 import polyline
 
 from datetime import datetime
+
+from django.contrib.auth import logout
+from django.db import transaction
+from django.shortcuts import render, redirect
 from django.utils.datastructures import MultiValueDictKeyError
+from django.core.exceptions import ValidationError
 from strava.settings import GMAPS_API_TOKEN
 from mylibs.gpxgen import GpxGen
-from .models import Visitor, Visit, Action
+from .models import (
+    Visitor,
+    Action,
+    CustomUser,
+    UsageToken,
+)
 
 
 # constants
@@ -138,31 +148,102 @@ def validate_activity_type(activity_type):
     return activity_type
 
 
+def validate_username(username):
+    if not username:
+        raise ValidationError('Username is not provided')
+
+    if len(username) < 6:
+        raise ValidationError('Username length must be at least 6 characters')
+
+    if len(username) > 128:
+        raise ValidationError('Username length cannot be more than 128 characters')
+
+    user_exists = CustomUser.objects.filter(username=username).exists()
+    if user_exists:
+        raise ValidationError(f'User with username \'{username}\' already exists')
+
+    try:
+        CustomUser.username_validator(username)
+    except ValidationError as ve:
+        raise ValidationError(ve.args[0].rstrip('.'))
+
+
+def validate_password(password):
+    if not password:
+        raise ValidationError('Password is not provided')
+
+    if len(password) < 6:
+        raise ValidationError('Password length must be at least 6 characters')
+
+    if len(password) > 128:
+        raise ValidationError('Password length cannot be more than 128 characters')
+
+
+def validate_password_confirm(password_confirm, password):
+    if not password_confirm:
+        raise ValidationError('Confirm password is not provided')
+
+    if password_confirm != password:
+        raise ValidationError('Confirm password doesn\'t match with password')
+
+
+def validate_usage_token(usage_token):
+    if not usage_token:
+        raise ValidationError('Usage token is not provided')
+
+    try:
+        usage_token = UsageToken.objects.get(value=usage_token)
+    except UsageToken.DoesNotExist:
+        raise ValidationError('Usage token doesn\'t exist')
+
+    if usage_token.status == UsageToken.UsageTokenStatus.INUSE:
+        raise ValidationError('Usage token is already in use now')
+    elif usage_token.status == UsageToken.UsageTokenStatus.INACTIVE:
+        raise ValidationError('Usage token is inactive')
+
+
+def render_after_user_active_status_validation(request):
+    user = request.user
+    if user.status != CustomUser.CustomUserStatus.ACTIVE:
+        logout(request)
+        raise ValidationError(render(request, 'strava_generator/registration/signin.html',
+                                     {'error_info': 'Your account doesn\'t have permission to use this service'}))
+
+
+def redirection_after_user_active_usage_token_validation(request):
+    usage_token = request.user.active_usage_token
+    if not usage_token or usage_token.status == UsageToken.UsageTokenStatus.INACTIVE:
+        raise ValidationError(redirect('/update-usage-token'))
+
+
+def action_after_full_user_validation(request):
+    render_after_user_active_status_validation(request)
+    redirection_after_user_active_usage_token_validation(request)
+
+
+@transaction.atomic
+def register_user(username, password, usage_token):
+    usage_token = UsageToken.objects.get(value=usage_token)
+    user = CustomUser.objects.create_user(
+        username=username,
+        password=password,
+        active_usage_token=usage_token
+    )
+    return user
+
+
 def register_visitor(request):
     visitor_ip = get_client_ip(request)
     visitor = Visitor.objects.get_or_create(ip=visitor_ip)[0]
     return visitor
 
 
-def register_visit(request):
-    visitor = register_visitor(request)
-    user_agent = request.META.get('HTTP_USER_AGENT')
-
-    visit = Visit.objects.create(
-        visitor=visitor,
-        user_agent=user_agent,
-    )
-
-    return visit
-
-
-def register_action(request):
-    visitor = register_visitor(request)
+def register_action(request, user):
     action_url = request.get_full_path()
     user_agent = request.META.get('HTTP_USER_AGENT')
 
     action = Action.objects.create(
-        visitor=visitor,
+        user=user,
         action_url=action_url,
         user_agent=user_agent,
     )

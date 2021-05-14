@@ -61,9 +61,9 @@
                         </li>
 
                         <li class="nav-item dropdown order-0 order-sm-1">
-                            <a class="nav-link dropdown-toggle font-weight-bold" role="button" id="username"
+                            <a class="d-flex align-items-center nav-link dropdown-toggle" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                {{ user.username }}
+                                <span id="username" class="text font-weight-bold text-truncate">{{ user.username }}</span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="username">
                                 <a class="dropdown-item" href="#">Uses Left: {{ user.active_usage_token.uses_left }}</a>

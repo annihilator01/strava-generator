@@ -118,8 +118,18 @@ input {
     color: var(--secondary-color);
 }
 
+.nav-link .text {
+    max-width: 200px;
+}
+
+@media (min-width: 576px) {
+    .nav-link .text {
+        max-width: 150px;
+    }
+}
+
 .nav-link:hover {
-    /*color: var(--secondary-color);*/
+    color: var(--secondary-color);
     filter: brightness(.7);
 }
 
