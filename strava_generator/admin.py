@@ -1,5 +1,21 @@
 from django.contrib import admin
-from .models import Visitor, Action, CustomUser, UsageToken
+from .models import (
+    Visit,
+    Visitor,
+    CustomUser,
+    UsageToken,
+    Action,
+    GpxGenerationHistory,
+)
+
+
+@admin.register(Visit)
+class VisitAdmin(admin.ModelAdmin):
+    list_display = (
+        'visitor',
+        'user_agent',
+        'created_at',
+    )
 
 
 @admin.register(Visitor)
@@ -13,7 +29,7 @@ class CustomUserAdmin(admin.ModelAdmin):
         'username',
         'status',
         'active_usage_token',
-        'total_used_num',
+        'total_uses_num',
         'created_at',
         'updated_at',
     )
@@ -32,4 +48,22 @@ class UsageTokenAdmin(admin.ModelAdmin):
 
 @admin.register(Action)
 class ActionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'short_action_url', 'created_at')
+    list_display = (
+        'user',
+        'short_action_url',
+        'user_agent',
+        'created_at',
+    )
+
+
+@admin.register(GpxGenerationHistory)
+class GpxGenerationHistoryAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'from_location',
+        'to_location',
+        'end_time',
+        'distance',
+        'activity_type',
+        'created_at',
+    )

@@ -1,7 +1,7 @@
 #map {
     width: auto;
     height: 100%;
-    min-height: 500px;
+    min-height: 400px;
 }
 
 #status-bar {
@@ -96,7 +96,7 @@
 
 @media (min-width: 992px) {
     .location-list-container {
-        height: 500px;
+        height: 400px;
     }
 }
 

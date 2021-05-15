@@ -18,6 +18,24 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
+class Visit(models.Model):
+    visitor = models.ForeignKey(
+        'Visitor',
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    user_agent = models.TextField(
+        db_column='user_agent',
+        null=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.visitor)
+
+
 class Visitor(models.Model):
     ip = models.CharField(
         db_column='ip',
@@ -54,8 +72,8 @@ class CustomUser(AbstractUser):
         null=True,
     )
 
-    total_used_num = models.IntegerField(
-        db_column='total_used_num',
+    total_uses_num = models.IntegerField(
+        db_column='total_uses_num',
         default=0,
     )
 
@@ -80,6 +98,13 @@ class CustomUser(AbstractUser):
         return self.username
 
 
+def create_unique_value():
+    value = get_random_string(length=32)
+    while UsageToken.objects.filter(value=value):
+        value = get_random_string(length=32)
+    return value
+
+
 class UsageToken(models.Model):
     class UsageTokenStatus(models.TextChoices):
         ACTIVE = 'active', _('Active')
@@ -89,7 +114,7 @@ class UsageToken(models.Model):
     value = models.CharField(
         db_column='value',
         max_length=32,
-        default=get_random_string(length=32),
+        default=create_unique_value,
         editable=False,
         unique=True,
     )
@@ -142,6 +167,55 @@ class Action(models.Model):
     @property
     def short_action_url(self):
         return truncatechars(self.action_url, 50)
+
+    def __str__(self):
+        return str(self.user)
+
+
+class GpxGenerationHistory(models.Model):
+    user = models.ForeignKey(
+        'CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+    from_location = models.TextField(
+        db_column='from_location',
+        null=True,
+    )
+
+    to_location = models.TextField(
+        db_column='to_location',
+        null=True,
+    )
+
+    activity_type = models.CharField(
+        db_column='activity_type',
+        max_length=100,
+        null=True,
+    )
+
+    distance = models.IntegerField(
+        db_column='distance',
+        null=True,
+    )
+
+    end_time = models.CharField(
+        db_column='finish_time',
+        max_length=100,
+        null=True,
+    )
+
+    gpx = models.TextField(
+        db_column='gpx',
+        null=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'GPX generation history'
+        verbose_name_plural = 'GPX generation history'
 
     def __str__(self):
         return str(self.user)

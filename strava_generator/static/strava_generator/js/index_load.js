@@ -35,17 +35,14 @@ let map,
     directionsRenderer,
     routeMarkers = {};
 
-let $markerMenu,
-    $statusBar,
-    $statusBarInfo;
+let $markerMenu = $('#marker-menu'),
+    $statusBar = getStatusBar(),
+    $statusBarInfo = $statusBar.children('#status-bar');
 
-async function initMap2() {
+async function initMap() {
     directionService = new google.maps.DirectionsService();
     directionsRenderer = new google.maps.DirectionsRenderer({suppressMarkers: true});
     geocoder = new google.maps.Geocoder();
-    $markerMenu = $('#marker-menu');
-    $statusBar = getStatusBar();
-    $statusBarInfo = $statusBar.children('#status-bar');
     $statusBarInfo.data('totalDistance', 0);
 
     let center_coords, zoom;
@@ -319,6 +316,7 @@ function initGenerateFileButton () {
     $generateGpxButton.click(generateGpxFile);
 }
 
+$usesLeft = $('#uses-left');
 function generateGpxFile() {
     $generateGpxButton.prop('disabled', true);
     $generateGpxButton.data('originalHtml', $generateGpxButton.html());
@@ -343,7 +341,8 @@ function generateGpxFile() {
                         destination=${destination}&
                         waypoints=${waypoints}&
                         activity_type=${activityType}&
-                        end_time=${endTime}`
+                        end_time=${endTime}&
+                        redirection_hint`
                         .replace(/(\r\n|[\r\n\t\s])/gm, '');
 
     fetch(urlRequest)
@@ -352,6 +351,9 @@ function generateGpxFile() {
             const code = response.code;
             switch (code) {
                 case 200:
+                    const uses_left = response.uses_left;
+                    $usesLeft.text(uses_left);
+
                     const generatedGpx = response.gpx;
                     const blob = new Blob([generatedGpx], {type: 'text/plain'});
 
@@ -361,6 +363,10 @@ function generateGpxFile() {
 
                 case 400:
                     showErrorMessage(response.error);
+                    break;
+
+                case 403:
+                    window.location.replace('/');
                     break;
             }
         })

@@ -1,28 +1,30 @@
-from django.core.exceptions import ValidationError
-from rest_framework import status
+from django.db import transaction, DatabaseError
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import exception_handler
+from rest_framework.exceptions import ParseError
+
 from datetime import datetime
 from pytz import timezone
 from ... import service
 
 
-def _get_400_response(msg):
-    response = {
-        'code': 400,
-        'error': msg
-    }
-    response_status = status.HTTP_400_BAD_REQUEST
-    return response, response_status
+def custom_exception_handler(exc, context):
+    response = exception_handler(exc, context)
+
+    if response is not None:
+        response.data['code'] = response.status_code
+        response.data['error'] = response.data.pop('detail')
+
+    return response
 
 
 @api_view(['GET'])
+@service.user_active_status_required(isApi=True)
+@service.active_usage_token_required(isApi=True)
 def get_generated_strava_gpx(request):
-    # service.register_action(request)
-    try:
-        service.redirection_after_user_validation(request)
-    except ValidationError as ve:
-        return ve.args[0]
+    user = request.user
+    service.register_action(request)
 
     params = request.query_params
     try:
@@ -36,7 +38,7 @@ def get_generated_strava_gpx(request):
             service.IncorrectActivityTypeException,
             ValueError
     ) as e:
-        return Response(*_get_400_response(str(e)))
+        raise ParseError(detail=str(e))
 
     if end_time:
         msk_timezone = timezone('Europe/Moscow')
@@ -45,10 +47,8 @@ def get_generated_strava_gpx(request):
         if now_time.timestamp() < end_time.timestamp():
             string_now_time = service.get_string_from_datetime(now_time)
             string_end_time = service.get_string_from_datetime(end_time)
-            return Response(
-                *_get_400_response(f'Activity end time &#171;{string_end_time}&#187; exceeds '
-                                   f'now time &#171;{string_now_time}&#187;')
-            )
+            raise ParseError(detail=f'Activity end time &#171;{string_end_time}&#187; exceeds '
+                                    f'now time &#171;{string_now_time}&#187;')
 
     try:
         cooked_gpx_generator = service.get_cooked_gpx_generator(
@@ -59,12 +59,29 @@ def get_generated_strava_gpx(request):
             end_time=end_time
         )
     except Exception as e:
-        return Response(*_get_400_response(str(e)))
+        raise ParseError(detail=str(e))
 
-    generated_gpx = cooked_gpx_generator.build()
+    generated_gpx = cooked_gpx_generator['generator'].build()
+
+    try:
+        with transaction.atomic():
+            service.register_generate_gpx_action_info(
+                user=user,
+                from_location=cooked_gpx_generator['from_location'],
+                to_location=cooked_gpx_generator['to_location'],
+                activity_type=activity_type,
+                distance=cooked_gpx_generator['distance'],
+                end_time=end_time,
+                gpx=generated_gpx,
+            )
+            service.use_usage_token(user)
+    except DatabaseError:
+        raise ParseError(detail='Something went wrong. Try again')
+
     response = {
         'code': 200,
-        'gpx': generated_gpx
+        'gpx': generated_gpx,
+        'uses_left': user.active_usage_token.uses_left if user.active_usage_token else 0,
     }
 
     return Response(response)

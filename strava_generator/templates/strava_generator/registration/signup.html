@@ -68,8 +68,6 @@
 {% block js %}
      {{ block.super }}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-
     {% compress js %}
         <script src="{% static 'strava_generator/js/registration/signup.js' %}"></script>
     {% endcompress %}

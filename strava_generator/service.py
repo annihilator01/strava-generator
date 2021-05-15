@@ -9,13 +9,17 @@ from django.db import transaction
 from django.shortcuts import render, redirect
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied
+
 from strava.settings import GMAPS_API_TOKEN
 from mylibs.gpxgen import GpxGen
 from .models import (
+    Visit,
     Visitor,
-    Action,
     CustomUser,
     UsageToken,
+    Action,
+    GpxGenerationHistory,
 )
 
 
@@ -134,7 +138,15 @@ def get_cooked_gpx_generator(origin, destination, waypoints, activity_type, end_
         points.append(coords)
     generator.add_points(points)
 
-    return generator
+    from_location = directions_result['legs'][0]['start_address']
+    to_location = directions_result['legs'][-1]['end_address']
+
+    return {
+        'generator': generator,
+        'distance': total_distance,
+        'from_location': from_location,
+        'to_location': to_location,
+    }
 
 
 def validate_activity_type(activity_type):
@@ -202,23 +214,59 @@ def validate_usage_token(usage_token):
         raise ValidationError('Usage token is inactive')
 
 
-def render_after_user_active_status_validation(request):
-    user = request.user
-    if user.status != CustomUser.CustomUserStatus.ACTIVE:
-        logout(request)
-        raise ValidationError(render(request, 'strava_generator/registration/signin.html',
-                                     {'error_info': 'Your account doesn\'t have permission to use this service'}))
+def user_active_status_required(_func=None, *, isApi=False):
+    def decorator(func):
+        def wrapper(request, *args, **kwargs):
+            user = request.user
+            if user is not None:
+                if user.status != CustomUser.CustomUserStatus.ACTIVE:
+                    if isApi:
+                        raise PermissionDenied(detail='Your account doesn\'t have permission to use this service')
+                    else:
+                        logout(request)
+                        request.session['signin_info'] = {
+                            'error_info': 'Your account doesn\'t have permission to use this service',
+                        }
+
+                    return redirect('/signin')
+            return func(request, *args, **kwargs)
+        return wrapper
+
+    if _func is None:
+        return decorator
+    else:
+        return decorator(_func)
 
 
-def redirection_after_user_active_usage_token_validation(request):
-    usage_token = request.user.active_usage_token
-    if not usage_token or usage_token.status == UsageToken.UsageTokenStatus.INACTIVE:
-        raise ValidationError(redirect('/update-usage-token'))
+def handle_signin_info(func):
+    def wrapper(request, *args, **kwargs):
+        signin_info = request.session.pop('signin_info', None)
+        if signin_info is not None:
+            if signin_info.get('error_info') is not None:
+                return render(request, 'strava_generator/registration/signin.html',
+                              {'error_info': signin_info['error_info']})
+        return func(request, *args, **kwargs)
+    return wrapper
 
 
-def action_after_full_user_validation(request):
-    render_after_user_active_status_validation(request)
-    redirection_after_user_active_usage_token_validation(request)
+def active_usage_token_required(_func=None, *, isApi=False):
+    def decorator(func):
+        def wrapper(request, *args, **kwargs):
+            user = request.user
+            if user is not None:
+                active_usage_token = user.active_usage_token
+                if not active_usage_token or active_usage_token.status == UsageToken.UsageTokenStatus.INACTIVE:
+                    if isApi:
+                        raise PermissionDenied(detail='Your usage token has expired. Provide new one')
+                    else:
+                        return redirect('/update-usage-token')
+            return func(request, *args, **kwargs)
+        return wrapper
+
+    if _func is None:
+        return decorator
+    else:
+        return decorator(_func)
 
 
 @transaction.atomic
@@ -232,13 +280,44 @@ def register_user(username, password, usage_token):
     return user
 
 
+@transaction.atomic
+def update_usage_token(user, new_active_usage_token):
+    usage_token = UsageToken.objects.get(value=new_active_usage_token)
+    user.active_usage_token = usage_token
+    user.save()
+    return user
+
+
+@transaction.atomic
+def use_usage_token(user, use_num=1):
+    usage_token = user.active_usage_token
+    usage_token.uses_left -= use_num
+    user.total_uses_num += 1
+
+    usage_token.save()
+    user.save()
+
+
+def register_visit(request):
+    visitor = register_visitor(request)
+    user_agent = request.META.get('HTTP_USER_AGENT')
+
+    visit = Visit.objects.create(
+        visitor=visitor,
+        user_agent=user_agent,
+    )
+
+    return visit
+
+
 def register_visitor(request):
     visitor_ip = get_client_ip(request)
     visitor = Visitor.objects.get_or_create(ip=visitor_ip)[0]
     return visitor
 
 
-def register_action(request, user):
+def register_action(request):
+    user = request.user
     action_url = request.get_full_path()
     user_agent = request.META.get('HTTP_USER_AGENT')
 
@@ -249,3 +328,26 @@ def register_action(request, user):
     )
 
     return action
+
+
+@transaction.atomic
+def register_generate_gpx_action_info(
+        user,
+        from_location,
+        to_location,
+        activity_type,
+        distance,
+        end_time,
+        gpx,
+):
+    gpx_generation_history_record = GpxGenerationHistory.objects.create(
+        user=user,
+        from_location=from_location,
+        to_location=to_location,
+        activity_type=activity_type,
+        distance=distance,
+        end_time=end_time,
+        gpx=gpx,
+    )
+
+    return gpx_generation_history_record
