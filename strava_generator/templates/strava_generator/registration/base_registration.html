@@ -41,12 +41,10 @@
 
 
 {% block js %}
-    {% compress js %}
-        <script type="text/javascript">
-            const errorInfo = '{{ error_info | escapejs }}';
-            if (errorInfo) {
-                showErrorMessage(errorInfo);
-            }
-        </script>
-    {% endcompress %}
+    <script type="text/javascript">
+        const errorInfo = '{{ error_info | escapejs }}';
+        if (errorInfo) {
+            showErrorMessage(errorInfo);
+        }
+    </script>
 {% endblock %}
