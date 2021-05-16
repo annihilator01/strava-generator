@@ -145,7 +145,7 @@ async function initMap() {
                 ],
             });
 
-            map.addListener("click", (event) => {
+            map.addListener('click', (event) => {
                 geocoder.geocode(
                     {location: event.latLng},
                     (results, status) => {
@@ -156,6 +156,14 @@ async function initMap() {
                         }
                     }
                 )
+            });
+
+            map.addListener('zoom_changed', () => {
+                $markerMenu.css('display', 'none');
+            });
+
+            map.addListener('mousedown', () => {
+                $markerMenu.css('display', 'none');
             });
 
             map.controls[google.maps.ControlPosition.LEFT_TOP].push($statusBar[0]);
@@ -196,17 +204,7 @@ function getStatusBar() {
 
 function initDocumentBehaviour() {
     $(document).on('click scroll',(e) => {
-        if (
-            e.target.currentSrc !== 'https://maps.gstatic.com/mapfiles/transparent.png' ||
-            e.type === 'scroll'
-        ) {
-            $markerMenu.css('display', 'none');
-        }
-    });
-    $(window).contextmenu((e) => {
-        if (e.target.currentSrc !== 'https://maps.gstatic.com/mapfiles/transparent.png') {
-            $markerMenu.css('display', 'none');
-        }
+        $markerMenu.css('display', 'none');
     });
 }
 
