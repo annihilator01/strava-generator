@@ -339,8 +339,7 @@ function generateGpxFile() {
                         destination=${destination}&
                         waypoints=${waypoints}&
                         activity_type=${activityType}&
-                        end_time=${endTime}&
-                        redirection_hint`
+                        end_time=${endTime}`
                         .replace(/(\r\n|[\r\n\t\s])/gm, '');
 
     fetch(urlRequest)

@@ -55,6 +55,10 @@ function addMarker(coords, name) {
         }
     });
 
+    google.maps.event.addListener(marker, 'dragstart', () => {
+        $markerMenu.css('display', 'none');
+    });
+
     map.setCenter(coords);
 }
 
@@ -232,7 +236,6 @@ function addRoutePoint(marker) {
     } else {
         return routeMarkers[coordsString];
     }
-
 
     const name = marker.title;
     const $routePoint = getRoutePoint(name);
