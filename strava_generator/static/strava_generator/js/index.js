@@ -245,11 +245,7 @@ function addRoutePoint(marker) {
         map.setZoom(DEFAULT_MAP_ZOOM);
     });
 
-    if ($locationListChildren.length < 2) {
-        $locationList.append($routePoint);
-    } else {
-        $locationList.children(':last-child').before($routePoint);
-    }
+    $locationList.append($routePoint);
 
     google.maps.event.addListener(marker, 'dragend', drawRoute);
     drawRoute();

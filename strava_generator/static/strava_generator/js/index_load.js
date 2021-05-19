@@ -61,6 +61,7 @@ async function initMap() {
                 zoom: zoom,
                 disableDefaultUI: true,
                 zoomControl: true,
+                gestureHandling: 'greedy',
                 scaleControl: true,
                 fullscreenControl: true,
                 styles: [
@@ -204,7 +205,9 @@ function getStatusBar() {
 
 function initDocumentBehaviour() {
     $(document).on('click scroll',(e) => {
-        $markerMenu.css('display', 'none');
+        if (e.target.currentSrc !== 'https://maps.gstatic.com/mapfiles/transparent.png') {
+            $markerMenu.css('display', 'none');
+        }
     });
 }
 
