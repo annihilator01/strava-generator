@@ -30,7 +30,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.environ['CONTEXT'] == 'DEBUG' else False
 
-ALLOWED_HOSTS = ['stravagen.online', '0.0.0.0']
+ALLOWED_HOSTS = ['stravagen.online', '84.252.132.36', '0.0.0.0']
 
 
 # Application definition
@@ -188,7 +188,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(message)s'
+            'format': '[%(levelname)s] %(asctime)s - %(message)s'
         },
     },
     'handlers': {
