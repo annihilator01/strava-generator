@@ -1,4 +1,4 @@
-import os
+import logging
 import googlemaps
 import polyline
 
@@ -21,6 +21,9 @@ from .models import (
     Action,
     GpxGenerationHistory,
 )
+
+
+logger = logging.getLogger('django')
 
 
 # constants
@@ -118,7 +121,8 @@ def get_cooked_gpx_generator(origin, destination, waypoints, activity_type, end_
             destination=destination,
             mode='walking'
         )[0]
-    except Exception:
+    except Exception as e:
+        logger.exception(e)
         raise Exception('Impossible route')
 
     all_points_coords = []
