@@ -186,16 +186,28 @@ EXPLORER_DEFAULT_CONNECTION = 'default'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(message)s'
+        },
+    },
     'handlers': {
-        'logfile': {
-            'level': 'DEBUG',
+        'info': {
+            'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'server.log',
+            'filename': 'info.log',
+            'formatter': 'verbose',
+        },
+        'errors': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'error.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['logfile'],
+            'handlers': ['info', 'errors'],
         },
     },
 }
