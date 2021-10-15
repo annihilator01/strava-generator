@@ -198,16 +198,18 @@ LOGGING = {
             'filename': 'info.log',
             'formatter': 'verbose',
         },
-        'errors': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': 'error.log',
+        'stream': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['info', 'errors'],
+            'level': 'INFO',
+            'propagate': False,
+            'handlers': ['info', 'stream'],
         },
     },
 }
