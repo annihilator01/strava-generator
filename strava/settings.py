@@ -188,7 +188,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'logfile': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': 'server.log',
         },
